@@ -1,0 +1,8 @@
+{
+  "name": "pulsecontinuum-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {"dev": "next dev --hostname 127.0.0.1", "build": "next build", "start": "next start --hostname 127.0.0.1", "typecheck": "tsc --noEmit", "lint": "next lint"},
+  "dependencies": {"next": "^14.2.35", "react": "^18.3.1", "react-dom": "^18.3.1", "lucide-react": "^0.468.0", "framer-motion": "^11.18.2"},
+  "devDependencies": {"typescript": "^5.7.3", "@types/node": "^22.10.5", "@types/react": "^18.3.18", "@types/react-dom": "^18.3.5", "tailwindcss": "^3.4.17", "postcss": "^8.5.1", "autoprefixer": "^10.4.20", "eslint": "^8.57.1", "eslint-config-next": "^14.2.35"}
+}

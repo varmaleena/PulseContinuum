@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-10-24T17:13:56.184202+00:00",
+  "scope": "Offline deterministic label/formulary gate and model schema; no clinical efficacy or model accuracy measurement",
+  "total": 19,
+  "passed": 19,
+  "elapsed_ms": 0.13,
+  "cases": [
+    {
+      "case": "Pantoprazole / 40mg / readable=True",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "case": "Pantoprazole / 40mg / readable=False",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Pantoprazole / 4000mg / readable=True",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Pantoprazole / missing / readable=True",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Paracetamol / 500mg / readable=True",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "case": "Paracetamol / 500mg / readable=False",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Paracetamol / 4000mg / readable=True",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Paracetamol / missing / readable=True",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "No image evidence",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Unknown drug",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Missing readability",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "String true must not pass",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Mixed matched/unmatched labels",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Case-insensitive exact label",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "case": "Color is not identity",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "case": "Both formulary labels readable",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "case": "Invalid model score -1",
+      "passed": true
+    },
+    {
+      "case": "Invalid model score 101",
+      "passed": true
+    },
+    {
+      "case": "Invalid model score invalid",
+      "passed": true
+    }
+  ]
+}

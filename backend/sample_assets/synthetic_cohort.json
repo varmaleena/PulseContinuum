@@ -1,0 +1,124 @@
+{
+  "dataset_id": "PULSE-SYNTH-2026-10",
+  "synthetic": true,
+  "reference_date": "2026-10-24",
+  "notice": "Entirely fictional hackathon fixtures. No source patient records, real identifiers, real clinician affiliations, or treatment recommendations. Medication rows are simulated orders for software testing only.",
+  "episodes": [
+    {
+      "episode_id": "EP-2026-409", "patient_id": "PT-409", "name": "Rajesh Sharma", "age": 58, "sex": "Male",
+      "condition": "Post-laparoscopic cholecystectomy", "day": 3, "risk_score": 18,
+      "phone": "+12025550101", "caregiver_phone": "+12025550151",
+      "admitted_at": "2026-10-19", "discharged_at": "2026-10-21",
+      "facility": "Continuum Demo Hospital - Hyderabad", "care_unit": "General surgery / GS-04",
+      "clinician": "Dr. Kavya Menon (fictional)", "caregiver_relation": "Spouse", "preferred_language": "Hindi",
+      "history": ["Hypertension documented in the fictional history", "Independent with daily activities before admission"],
+      "allergies": ["No known drug allergies recorded in the fixture"],
+      "discharge_vitals": {"Blood pressure": "128/78 mmHg", "Pulse": "78 bpm", "Temperature": "36.8 C", "SpO2": "98% on room air"},
+      "handoff_note": "Discharged after an uncomplicated fictional admission. Needs help distinguishing two medication strips. Caregiver is available after 18:00.",
+      "follow_up": "2026-10-28, 10:30 - surgical review (demo slot)",
+      "scenario": "Unclear medication label followed by a reported fever; demonstrate vision review and caregiver continuity.",
+      "patient_report": "I took the blue tablet this morning. Now I have a 101.2F fever and dizziness. Which strip do I take next?",
+      "medications": [
+        {"name": "Amoxicillin-Clavulanate", "strength": "625mg", "schedule": "Morning and evening after food - synthetic physician order"},
+        {"name": "Pantoprazole", "strength": "40mg", "schedule": "Morning before food - synthetic physician order"}
+      ],
+      "red_flags": ["Reported fever after discharge requires clinician review.", "Worsening abdominal pain, dizziness, or wound changes require escalation."]
+    },
+    {
+      "episode_id": "EP-2026-412", "patient_id": "PT-412", "name": "Elena Rostova", "age": 64, "sex": "Female",
+      "condition": "Cardiac stent recovery", "day": 5, "risk_score": 32,
+      "phone": "+12025550102", "caregiver_phone": "+12025550152",
+      "admitted_at": "2026-10-16", "discharged_at": "2026-10-19",
+      "facility": "Continuum Demo Hospital - Hyderabad", "care_unit": "Cardiology / CC-02",
+      "clinician": "Dr. Arun Deshmukh (fictional)", "caregiver_relation": "Daughter", "preferred_language": "English",
+      "history": ["Dyslipidemia in the fictional chart", "Lives with daughter; medication organizer available"],
+      "allergies": ["Sulfonamide allergy documented in the fixture; verification pending"],
+      "discharge_vitals": {"Blood pressure": "122/74 mmHg", "Pulse": "72 bpm", "Temperature": "36.7 C", "SpO2": "98% on room air"},
+      "handoff_note": "Fictional radial-access recovery. Patient asks which tablets are long-term medicines; route medication changes to the cardiology team.",
+      "follow_up": "2026-10-27, 11:00 - cardiology review (demo slot)",
+      "scenario": "Medication reconciliation and a refill request without changing the prescribed plan.",
+      "patient_report": "I feel well today, but I have two different tablet strips. Can the care team confirm the label and arrange a refill review?",
+      "medications": [
+        {"name": "Aspirin", "strength": "75mg", "schedule": "Once daily as documented in the fictional discharge order"},
+        {"name": "Atorvastatin", "strength": "20mg", "schedule": "Evening as documented in the fictional discharge order"}
+      ],
+      "red_flags": ["New chest discomfort or breathlessness requires urgent clinician assessment.", "Unexpected bleeding must be reported to the treating team."]
+    },
+    {
+      "episode_id": "EP-2026-418", "patient_id": "PT-418", "name": "Maya Iyer", "age": 42, "sex": "Female",
+      "condition": "Total knee replacement", "day": 7, "risk_score": 12,
+      "phone": "+12025550103", "caregiver_phone": "+12025550153",
+      "admitted_at": "2026-10-13", "discharged_at": "2026-10-17",
+      "facility": "Continuum Demo Hospital - Hyderabad", "care_unit": "Orthopaedics / OR-06",
+      "clinician": "Dr. Nisha Bhat (fictional)", "caregiver_relation": "Sister", "preferred_language": "Telugu",
+      "history": ["Reduced mobility in the fictional recovery plan", "Home physiotherapy arranged in the scenario"],
+      "allergies": ["No known drug allergies recorded in the fixture"],
+      "discharge_vitals": {"Blood pressure": "116/72 mmHg", "Pulse": "76 bpm", "Temperature": "36.6 C", "SpO2": "99% on room air"},
+      "handoff_note": "Dressing remains dry in the scenario. Patient needs a readable medication-label check and a scheduled physiotherapy reminder.",
+      "follow_up": "2026-10-26, 09:00 - wound and mobility review (demo slot)",
+      "scenario": "Low-risk check-in, medication-label review, and routine continuity.",
+      "patient_report": "The dressing is dry and I finished my exercises. Please check this medicine label against my discharge list.",
+      "medications": [
+        {"name": "Paracetamol", "strength": "500mg", "schedule": "Only as documented in the fictional pain-management plan"}
+      ],
+      "red_flags": ["Increasing wound redness, fever, or calf symptoms require clinician review."]
+    },
+    {
+      "episode_id": "EP-2026-421", "patient_id": "PT-421", "name": "Ananya Rao", "age": 36, "sex": "Female",
+      "condition": "Asthma exacerbation follow-up", "day": 2, "risk_score": 28,
+      "phone": "+12025550104", "caregiver_phone": "+12025550154",
+      "admitted_at": "2026-10-20", "discharged_at": "2026-10-22",
+      "facility": "Continuum Demo Hospital - Hyderabad", "care_unit": "Respiratory medicine / RM-03",
+      "clinician": "Dr. S. Farooq (fictional)", "caregiver_relation": "Partner", "preferred_language": "English",
+      "history": ["Intermittent asthma in the fictional history", "Patient requests inhaler-label reconciliation"],
+      "allergies": ["No known medication allergies recorded in the fixture"],
+      "discharge_vitals": {"Blood pressure": "118/76 mmHg", "Pulse": "84 bpm", "Temperature": "36.9 C", "SpO2": "97% on room air"},
+      "handoff_note": "Fictional inhaler-technique teaching completed. Any rescue-medication changes must be reviewed against the clinician's action plan.",
+      "follow_up": "2026-10-29, 14:00 - respiratory review (demo slot)",
+      "scenario": "Patient confuses two inhaler labels; use evidence review without inferring a dose.",
+      "patient_report": "I have a blue inhaler and another inhaler. I am comfortable now, but I need the care team to confirm which label matches my plan.",
+      "medications": [
+        {"name": "Salbutamol", "strength": "100mcg/actuation", "schedule": "Refer to the fictional clinician-authored inhaler action plan"}
+      ],
+      "red_flags": ["New or worsening breathing difficulty requires urgent clinical assessment."]
+    },
+    {
+      "episode_id": "EP-2026-425", "patient_id": "PT-425", "name": "Arjun Mehta", "age": 67, "sex": "Male",
+      "condition": "Diabetic foot wound follow-up", "day": 4, "risk_score": 47,
+      "phone": "+12025550105", "caregiver_phone": "+12025550155",
+      "admitted_at": "2026-10-17", "discharged_at": "2026-10-20",
+      "facility": "Continuum Demo Hospital - Hyderabad", "care_unit": "Wound care / WC-01",
+      "clinician": "Dr. Leena Jacob (fictional)", "caregiver_relation": "Son", "preferred_language": "Hindi",
+      "history": ["Type 2 diabetes in the fictional history", "Reduced sensation documented in the simulated foot examination"],
+      "allergies": ["Penicillin allergy flagged in the fixture; clinician confirmation required"],
+      "discharge_vitals": {"Blood pressure": "134/80 mmHg", "Pulse": "82 bpm", "Temperature": "36.8 C", "SpO2": "98% on room air"},
+      "handoff_note": "Caregiver performs dressing changes in the fictional home-care plan. New wound concerns must be routed to a clinician; the model does not diagnose infection.",
+      "follow_up": "2026-10-25, 15:30 - wound clinic (demo slot)",
+      "scenario": "Wound-photo escalation with an allergy warning and caregiver continuity.",
+      "patient_report": "The dressing looks different today. I have attached a photo and would like the wound-care team to review it before I change any medicine.",
+      "medications": [
+        {"name": "Metformin", "strength": "500mg", "schedule": "As documented in the fictional diabetes discharge plan"}
+      ],
+      "red_flags": ["Worsening wound appearance, discharge, fever, or spreading redness require clinician review."]
+    },
+    {
+      "episode_id": "EP-2026-429", "patient_id": "PT-429", "name": "David Fernandes", "age": 51, "sex": "Male",
+      "condition": "Heart failure discharge follow-up", "day": 1, "risk_score": 61,
+      "phone": "+12025550106", "caregiver_phone": "+12025550156",
+      "admitted_at": "2026-10-18", "discharged_at": "2026-10-23",
+      "facility": "Continuum Demo Hospital - Hyderabad", "care_unit": "Cardiology / CC-05",
+      "clinician": "Dr. Arun Deshmukh (fictional)", "caregiver_relation": "Spouse", "preferred_language": "English",
+      "history": ["Heart failure in the fictional history", "Daily weight log supplied as a simulated discharge task"],
+      "allergies": ["No known drug allergies recorded in the fixture"],
+      "discharge_vitals": {"Blood pressure": "110/70 mmHg", "Pulse": "74 bpm", "Temperature": "36.7 C", "SpO2": "97% on room air"},
+      "handoff_note": "Early follow-up is scheduled in the scenario. Care team must assess symptoms and the written plan before any medication adjustment.",
+      "follow_up": "2026-10-25, 12:00 - nurse-led clinical review (demo slot)",
+      "scenario": "Early-discharge symptom review and an on-call triage request.",
+      "patient_report": "I am a little more tired today. Can the care team review my weight log and medicines? I do not want to change the dose myself.",
+      "medications": [
+        {"name": "Furosemide", "strength": "20mg", "schedule": "Morning as documented in the fictional discharge plan"}
+      ],
+      "red_flags": ["New breathlessness, marked dizziness, or concerning home-monitoring changes require clinical assessment."]
+    }
+  ]
+}

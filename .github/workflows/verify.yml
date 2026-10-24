@@ -1,0 +1,58 @@
+name: Verify submission
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      AWS_MODE: demo
+      AWS_EC2_METADATA_DISABLED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - run: python -m ruff check backend tools
+      - run: python -m pytest -q
+      - run: python tools/evaluate_submission.py
+      - run: python tools/package_submission.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-and-evaluation
+          path: |
+            dist/
+            submission/evaluation-results.json
+  frontend:
+    runs-on: ubuntu-latest
+    env:
+      AWS_MODE: demo
+      AWS_EC2_METADATA_DISABLED: 'true'
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+        working-directory: .
+      - name: Start synthetic backend for access verification
+        working-directory: .
+        run: |
+          nohup python -m uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000 > /tmp/pulse-backend.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/api/health; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/pulse-backend.log
+          exit 1
+      - run: python tools/verify_judge_access.py
+        working-directory: .

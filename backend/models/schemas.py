@@ -1,0 +1,94 @@
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
+
+
+class Medication(BaseModel):
+    name: str
+    strength: str
+    schedule: str
+
+
+class CDSMessage(BaseModel):
+    id: str
+    channel: Literal['WHATSAPP', 'RCS', 'SMS', 'SES']
+    direction: str = 'outbound'
+    text: str
+    timestamp: str
+    status: str = 'SIMULATED'
+    media_url: str | None = None
+    media_type: str | None = None
+    destination: str = ''
+
+
+class AgentTrace(BaseModel):
+    agent: str
+    action: str
+    status: str = 'PASS'
+    timestamp: str
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
+class ClinicalProfile(BaseModel):
+    dataset_id: str
+    reference_date: str
+    sex: str
+    admitted_at: str
+    discharged_at: str
+    facility: str
+    care_unit: str
+    clinician: str
+    caregiver_relation: str
+    preferred_language: str
+    history: list[str]
+    allergies: list[str]
+    discharge_vitals: dict[str, str]
+    handoff_note: str
+    follow_up: str
+    scenario: str
+    patient_report: str
+
+
+class PatientState(BaseModel):
+    episode_id: str
+    patient_id: str
+    name: str
+    age: int
+    condition: str
+    day: int
+    phone: str
+    caregiver_phone: str
+    physician_email: str
+    is_synthetic: bool = True
+    profile: ClinicalProfile | None = None
+    active_channel: str = 'WHATSAPP'
+    risk_score: int = 18
+    stage: str = 'Monitoring'
+    medications: list[Medication] = Field(default_factory=list)
+    red_flags: list[str] = Field(default_factory=list)
+    messages: list[CDSMessage] = Field(default_factory=list)
+    traces: list[AgentTrace] = Field(default_factory=list)
+    analysis: dict[str, Any] | None = None
+    rcs_cards: list[dict[str, Any]] = Field(default_factory=list)
+    order: dict[str, Any] | None = None
+    audit: dict[str, Any] | None = None
+    blackout: bool = False
+    ingested: bool = False
+    pending_message_id: str | None = None
+    delivery_status: str = 'NONE'
+    caregiver_confirmed_at: str | None = None
+
+
+class WorkflowRequest(BaseModel):
+    episode_id: str = 'EP-2026-409'
+    reply: Literal['1', '2'] = '1'
+    option_id: Literal['generic', 'brand', 'triage'] = 'generic'
+    event_id: str | None = None
+
+
+class DeliveryEvent(BaseModel):
+    episode_id: str | None = None
+    address: str | None = None
+    message_id: str
+    status: Literal['DELIVERED', 'READ', 'FAILED', 'UNDELIVERED', 'TIMEOUT']
+    event_id: str

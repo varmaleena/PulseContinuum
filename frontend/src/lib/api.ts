@@ -1,0 +1,16 @@
+export interface Medication {name: string; strength: string; schedule: string}
+export interface Message {id: string; channel: string; direction: string; text: string; timestamp: string; status: string; destination: string; media_url?: string; media_type?: string}
+export interface Trace {agent: string; action: string; status: string; timestamp: string; details: Record<string, unknown>}
+export interface Pharmacy {id: string; title: string; drug: string; copay: string; eta: string; stock: number; cold_chain: boolean; action: string}
+export interface ClinicalProfile {dataset_id: string; reference_date: string; sex: string; admitted_at: string; discharged_at: string; facility: string; care_unit: string; clinician: string; caregiver_relation: string; preferred_language: string; history: string[]; allergies: string[]; discharge_vitals: Record<string,string>; handoff_note: string; follow_up: string; scenario: string; patient_report: string}
+export interface Analysis {summary: string; clinical_red_flags: string[]; execution_mode: string; identified_medications: {name: string; strength: string; label_readable: boolean}[]; guardrail_verification: {status: string; dosage_verified: boolean; guidance: string}; interactions: {duplicate_nsaid_risk: boolean; guidance: string}; managed_guardrail: {action: string}}
+export interface Patient {is_synthetic: boolean; profile: ClinicalProfile | null; episode_id: string; patient_id: string; name: string; age: number; condition: string; day: number; phone: string; caregiver_phone: string; physician_email: string; active_channel: string; risk_score: number; stage: string; medications: Medication[]; red_flags: string[]; messages: Message[]; traces: Trace[]; analysis: Analysis | null; rcs_cards: Pharmacy[]; blackout: boolean; ingested: boolean; delivery_status: string; caregiver_confirmed_at: string | null; order: {order_id: string; status: string; option: Pharmacy} | null; audit: {subject: string; html: string; sha256: string; hmac_sha256: string; message_id: string; mode: string; timestamp: string; pdf_url: string} | null}
+export interface TelemetryEvent {id: number; timestamp: string; category: string; service?: string; operation?: string; execution_mode?: string; request?: unknown; response?: unknown; request_id?: string; message_id?: string; http_status?: number; latency_ms?: number; error?: string; episode_id?: string}
+export interface Health {status: string; mode: string; region: string; memory: string; runtime: string; erp: string; audio: string; account_id?: string; channels?: Record<string, boolean>}
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`/api${path}`, {...init, cache: 'no-store'});
+  if (!response.ok) {const error = await response.json().catch(() => ({detail: response.statusText})); throw new Error(typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail));}
+  return response.json() as Promise<T>;
+}
+export function workflow(action: string, episode_id: string, extra: Record<string, string> = {}) {return api<Patient>(`/workflow/${action}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({episode_id, ...extra})});}
+export const time = (value: string) => new Date(value).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});

@@ -1,0 +1,72 @@
+{
+  "verified_at": "2026-10-24T17:18:33.127259+00:00",
+  "region": "us-east-1",
+  "mode": "live",
+  "demo_fallback": false,
+  "dynamodb_readback": "PASS",
+  "s3_pdf_head": 200,
+  "bedrock_multimodal": "PASS",
+  "eventbridge": "PASS",
+  "phone_messages": "NOT_SENT: sender onboarding required",
+  "ses": "LIVE_AWS",
+  "note": "Readback performed at verified_at. Bedrock/EventBridge/SES evidence records prior verified execution, not fresh inference or another email.",
+  "evidence": [
+    {
+      "service": "dynamodb",
+      "operation": "get_item",
+      "request_id": "PPFF94PFDCJ7SF1KFFASV62HR3VV4KQNSO5AEMVJF66Q9ASUAAJG",
+      "http_status": 200,
+      "latency_ms": 239.78
+    },
+    {
+      "service": "dynamodb",
+      "operation": "put_item",
+      "request_id": "9C1O6K2P5ERRS0DRMB5KD3COOBVV4KQNSO5AEMVJF66Q9ASUAAJG",
+      "http_status": 200,
+      "latency_ms": 370.61
+    },
+    {
+      "service": "sqs",
+      "operation": "receive_message",
+      "request_id": "c2820df2-12ea-585b-8ec0-6ea4c975abfb",
+      "http_status": 200,
+      "latency_ms": 3070.23
+    },
+    {
+      "service": "s3",
+      "operation": "put_object",
+      "request_id": "YHGCWPF8X79SEBK8",
+      "http_status": 200,
+      "latency_ms": 2455.29
+    },
+    {
+      "service": "bedrock-runtime",
+      "operation": "converse",
+      "request_id": "0d4409cf-1e8f-4875-b7e7-2b714589ae5d",
+      "http_status": 200,
+      "latency_ms": 3926.25
+    },
+    {
+      "service": "sesv2",
+      "operation": "send_email",
+      "request_id": "4524711a-5054-47f1-ae52-288353c76e29",
+      "http_status": 200,
+      "latency_ms": 3605.69
+    },
+    {
+      "service": "events",
+      "operation": "put_events",
+      "request_id": "c5165cc9-1b3b-4791-871f-01bb4165ea39",
+      "http_status": 200,
+      "latency_ms": 2597.02
+    },
+    {
+      "service": "sqs",
+      "operation": "delete_message",
+      "request_id": "ea98879a-4381-55cd-b873-e4cc9822f66d",
+      "http_status": 200,
+      "latency_ms": 262.4
+    }
+  ],
+  "evidence_scope": "One representative recorded response per service/operation. Background polling volume is not a clinical outcome metric."
+}

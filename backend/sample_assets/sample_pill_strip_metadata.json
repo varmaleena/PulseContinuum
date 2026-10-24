@@ -1,0 +1,9 @@
+{
+  "fixture_only": true,
+  "episode_id": "EP-2026-409",
+  "medications": [
+    {"name": "Amoxicillin-Clavulanate", "strength": "625mg", "schedule": "Per physician plan: morning and evening after food"},
+    {"name": "Pantoprazole", "strength": "40mg", "schedule": "Per physician plan: morning before food"}
+  ],
+  "notes": "Synthetic teaching fixture; these are not patient treatment instructions. Pill color is not identity evidence."
+}
