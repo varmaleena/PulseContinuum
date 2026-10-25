@@ -1,0 +1,8 @@
+fastapi>=0.115,<1
+boto3>=1.43.68,<2
+pydantic-settings>=2.7,<3
+python-multipart>=0.0.20
+pypdf>=5,<7
+reportlab>=4,<5
+pillow>=11,<14
+mangum>=0.19,<1

@@ -3,6 +3,7 @@ import {careApi} from '@/lib/profiles';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 async function proxy(request: NextRequest, {params}: {params: {path: string[]}}) {
   const isCare = request.headers.get('x-pulse-profile') !== 'admin';
@@ -14,8 +15,12 @@ async function proxy(request: NextRequest, {params}: {params: {path: string[]}})
   if (contentType) headers.set('content-type', contentType);
   if (process.env.BACKEND_API_TOKEN) headers.set('authorization', `Bearer ${process.env.BACKEND_API_TOKEN}`);
   try {
+    const body = request.method === 'POST' ? await request.arrayBuffer() : undefined;
+    if (process.env.BACKEND_EVENT_TRANSPORT === 'poll' && body && body.byteLength > 3 * 1024 * 1024) {
+      return Response.json({detail:'Hosted demo uploads must total less than 3 MB.'}, {status:413});
+    }
     const response = await fetch(upstream, {method: request.method, headers, cache: 'no-store',
-      body: request.method === 'POST' ? await request.arrayBuffer() : undefined,
+      body,
       signal: request.signal});
     const outgoing = new Headers();
     for (const key of ['content-type', 'content-disposition', 'cache-control']) {

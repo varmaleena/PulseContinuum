@@ -208,3 +208,39 @@ def test_clinical_evidence_normalizes_one_flag():
     evidence = ClinicalEvidence.model_validate({'identified_medications': [],
         'clinical_red_flags': 'Reported symptom requires review', 'readmission_risk_score': 30, 'summary': 'Review'})
     assert evidence.clinical_red_flags == ['Reported symptom requires review']
+
+
+def test_hosted_artifact_recovers_after_cache_loss(client, monkeypatch):
+    from unittest.mock import Mock
+
+    import artifact_store
+    monkeypatch.setattr(settings(), 'serverless', True)
+    monkeypatch.setattr(settings(), 'assets_bucket', 'synthetic-assets')
+    upload = Mock()
+    monkeypatch.setattr(artifact_store, 'call', upload)
+    data = b'%PDF synthetic audit fixture'
+    path = artifact_store.save_artifact('EP-2026-409-audit.pdf', data, 'application/pdf')
+    assert upload.call_args.args[2]['Key'] == 'artifacts/EP-2026-409-audit.pdf'
+    path.unlink()
+    remote = Mock()
+    remote.get_object.return_value = {'Body':io.BytesIO(data)}
+    monkeypatch.setattr(artifact_store, 'client', lambda service: remote)
+    restored = artifact_store.load_artifact('EP-2026-409-audit.pdf')
+    assert restored.read_bytes() == data
+
+
+def test_hosted_inference_allowance_fails_closed(client, monkeypatch):
+    from unittest.mock import Mock
+
+    import aws_client
+    from botocore.exceptions import ClientError
+    monkeypatch.setattr(settings(), 'aws_mode', 'live')
+    monkeypatch.setattr(settings(), 'allow_demo_fallback', False)
+    monkeypatch.setattr(settings(), 'max_model_calls_per_day', 1)
+    database, model = Mock(), Mock()
+    database.update_item.side_effect = ClientError({'Error':{'Code':'ConditionalCheckFailedException',
+        'Message':'Daily synthetic demo inference allowance exhausted'}}, 'UpdateItem')
+    monkeypatch.setattr(aws_client, 'client', lambda service: database if service == 'dynamodb' else model)
+    with pytest.raises(RuntimeError, match='allowance exhausted'):
+        aws_client.call('bedrock-runtime', 'converse', {}, 'BEDROCK_VISION')
+    model.converse.assert_not_called()

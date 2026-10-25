@@ -1,0 +1,10 @@
+{
+  "discharge": 200,
+  "bedrock": "LIVE_AWS validated",
+  "eventbridge": 200,
+  "outbound": "NOT_SENT as configured",
+  "audit_pdf_sha256": "52d0a8d084405be06f1bdf8147052a8029b93a9c55dc5e2b2ffdb4137db01810",
+  "durable_media": "PASS",
+  "durable_telemetry": "PASS",
+  "synthetic_reset": "PASS"
+}

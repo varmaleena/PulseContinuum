@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   if (!body || !['care','admin'].includes(body.profile)) return NextResponse.json({detail:'Choose a valid profile.'}, {status:400});
   if (body.profile === 'admin' && request.headers.get('x-pulse-access') !== 'admin') return NextResponse.json({detail:'Your credentials allow the care profile only.'}, {status:403});
   const response = NextResponse.json({profile:body.profile});
-  response.cookies.set(profileCookie, body.profile, {httpOnly:true, sameSite:'lax', secure:request.nextUrl.protocol === 'https:', path:'/', maxAge:60*60*8});
+  response.cookies.set(profileCookie, body.profile, {httpOnly:true, sameSite:'lax', secure:protocol === 'https:', path:'/', maxAge:60*60*8});
   response.headers.set('Cache-Control','no-store');
   return response;
 }

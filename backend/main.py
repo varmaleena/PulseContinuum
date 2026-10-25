@@ -9,6 +9,8 @@ from email.parser import BytesParser
 from pathlib import Path
 
 from agentcore.supervisor import Supervisor
+from artifact_store import load_artifact, save_artifact
+from aws_client import client
 from config import settings
 from fastapi import (
     Depends,
@@ -80,6 +82,7 @@ async def invalid(request: Request, exc: ValueError):
 @app.get('/api/health')
 def health():
     return {'status': 'ok', 'mode': settings().aws_mode, 'region': settings().aws_region,
+            'synthetic_reset': settings().allow_synthetic_reset,
             'account_id': settings().aws_account_id,
             'channels': {name: settings().channel_enabled(name) for name in ['WHATSAPP', 'RCS', 'SMS', 'SES']},
             'memory': 'DynamoDB' if settings().memory_table and settings().aws_mode == 'live' else 'Local demo JSON',
@@ -89,6 +92,8 @@ def health():
 
 @app.get('/api/events', dependencies=api_auth)
 async def event_stream(request: Request):
+    if settings().serverless:
+        raise HTTPException(409, 'Hosted mode uses bounded telemetry polling')
     import json
 
     from fastapi.responses import StreamingResponse
@@ -119,6 +124,8 @@ async def service_error(request: Request, exc: RuntimeError):
 
 @app.get('/api/patients', dependencies=api_auth)
 def patients():
+    if settings().serverless:
+        return [supervisor.memory.get(episode_id) for episode_id in supervisor.memory.states]
     return list(supervisor.memory.states.values())
 
 
@@ -129,6 +136,13 @@ def patient(episode_id: str):
 
 @app.get('/api/telemetry', dependencies=api_auth)
 def logs(category: str | None = None, after: int = 0):
+    if settings().serverless:
+        import json
+        result = client('dynamodb').query(TableName=settings().memory_table,
+            KeyConditionExpression='EpisodeID = :episode', ExpressionAttributeValues={':episode':{'S':'TELEMETRY#HOSTED'}},
+            ScanIndexForward=False, Limit=100)
+        records = [json.loads(item['State']['S']) for item in result.get('Items',[])]
+        return [record for record in reversed(records) if record['id'] > after and (not category or record.get('category') == category)]
     return [e for e in telemetry.events if e['id'] > after and (not category or e.get('category') == category)]
 
 
@@ -191,7 +205,7 @@ async def multimodal(episode_id: str = Form('EP-2026-409'),
         except Exception:
             raise HTTPException(422, 'Provide a valid JPEG, PNG, or WebP image')
         name = hashlib.sha256(image_data).hexdigest() + '.' + image_format
-        (media_dir / name).write_bytes(image_data)
+        save_artifact(f'media/{name}', image_data, f'image/{image_format}')
         image_url = f'/api/media/{name}'
     if audio:
         if audio.content_type not in ('audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/webm', 'audio/ogg', 'audio/mp4'):
@@ -199,7 +213,7 @@ async def multimodal(episode_id: str = Form('EP-2026-409'),
         data = await read_upload(audio)
         suffix = {'audio/mpeg': 'mp3', 'audio/wav': 'wav', 'audio/x-wav': 'wav', 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'm4a'}[audio.content_type]
         name = hashlib.sha256(data).hexdigest() + '.' + suffix
-        (media_dir / name).write_bytes(data)
+        save_artifact(f'media/{name}', data, audio.content_type or 'application/octet-stream')
         audio_url = f'/api/media/{name}'
     return await supervisor.multimodal(episode_id, transcript, image_data, image_format, image_url, audio_url)
 
@@ -221,10 +235,12 @@ async def rcs_action(body: WorkflowRequest):
 
 @app.post('/api/workflow/reset', dependencies=api_auth)
 async def reset(body: WorkflowRequest):
-    if settings().aws_mode != 'demo':
+    if settings().aws_mode != 'demo' and not settings().allow_synthetic_reset:
         raise HTTPException(403, 'Reset is demo-only')
     from agentcore.memory_graph import seed
     async with supervisor.lock(body.episode_id):
+        if not supervisor.memory.get(body.episode_id).is_synthetic:
+            raise HTTPException(403, 'Only synthetic episodes can be reset')
         if body.episode_id in supervisor.timeouts:
             supervisor.timeouts[body.episode_id].cancel()
         return supervisor.commit(seed()[body.episode_id])
@@ -282,17 +298,19 @@ async def ses_inbound(episode_id: str = Form(...), file: UploadFile = File(...),
 def media(name: str):
     if not all(c.isalnum() or c == '.' for c in name) or '..' in name:
         raise HTTPException(404)
-    path = Path(settings().data_dir) / 'media' / name
-    if not path.is_file():
+    path = load_artifact(f'media/{name}')
+    if path is None:
         raise HTTPException(404)
     return FileResponse(path)
 
 
 @app.get('/api/audits/{episode_id}.pdf', dependencies=api_auth)
 def audit_pdf(episode_id: str):
-    supervisor.memory.get(episode_id)
-    path = Path(settings().data_dir) / f'{episode_id}-audit.pdf'
-    if not path.exists():
+    state = supervisor.memory.get(episode_id)
+    if not state.audit:
+        raise HTTPException(404, 'Generate an audit by confirming a care request')
+    path = load_artifact(f'{episode_id}-audit.pdf')
+    if path is None:
         raise HTTPException(404, 'Generate an audit by confirming a care request')
     return FileResponse(path, media_type='application/pdf', filename=f'{episode_id}-audit.pdf')
 

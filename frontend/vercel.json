@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "REQUIRE_JUDGE_AUTH": "true",
+    "BACKEND_EVENT_TRANSPORT": "poll"
+  }
+}

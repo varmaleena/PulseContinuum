@@ -6,9 +6,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DIRECTORIES = ('backend', 'frontend', 'infra', 'tools', 'submission', '.github', 'docs')
-SKIP = {'node_modules', '.next', '__pycache__', '.pytest_cache', '.ruff_cache', 'cdk.out', 'cdk.connected.out'}
+SKIP = {'node_modules', '.next', '.vercel', '__pycache__', '.pytest_cache', '.ruff_cache', 'cdk.out', 'cdk.connected.out', 'cdk.hosted.out'}
 ROOT_FILES = ('README.md', 'LICENSE', 'VERIFICATION.md', 'MARKETPLACE_DEPLOYMENT.md',
-              'pyproject.toml', '.gitignore', '.gitattributes', '.env.example', 'start_demo.sh', 'start_demo.ps1')
+              'pyproject.toml', '.gitignore', '.gitattributes', '.vercelignore', '.env.example', 'start_demo.sh', 'start_demo.ps1')
 
 
 def main():

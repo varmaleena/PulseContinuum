@@ -10,6 +10,8 @@ node_modules/
 *.tsbuildinfo
 cdk.out/
 cdk.connected.out/
+cdk.hosted.out/
+.vercel/
 *.log
 tmp/
 dist/

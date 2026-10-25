@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     audit_signing_key: str = 'demo-only-not-a-production-key'
     cors_origins: str = 'http://localhost:3000,http://127.0.0.1:3000'
     data_dir: str = '.data'
+    serverless: bool = False
+    allow_synthetic_reset: bool = False
+    max_model_calls_per_day: int = 0
 
     def channel_enabled(self, channel: str) -> bool:
         return self.aws_mode == 'demo' or channel in self.outbound_channels.upper().split(',')

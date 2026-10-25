@@ -1,6 +1,7 @@
 import base64
 import json
 import time
+from datetime import datetime, timezone
 from functools import lru_cache
 from typing import Any
 
@@ -36,6 +37,14 @@ def call(service: str, operation: str, payload: dict, category: str,
     response: dict = demo or {'MessageId': f'demo-{telemetry.sequence + 1:06d}'}
     if settings().aws_mode == 'live' and configured:
         try:
+            if service == 'bedrock-runtime' and operation == 'converse' and settings().max_model_calls_per_day:
+                # Atomic shared allowance bounds hosted demo inference across cold starts.
+                client('dynamodb').update_item(TableName=settings().memory_table,
+                    Key={'EpisodeID':{'S':'BUDGET#'+datetime.now(timezone.utc).strftime('%Y-%m-%d')},
+                         'EntityKey':{'S':'BEDROCK'}},
+                    UpdateExpression='ADD ModelCalls :one',
+                    ConditionExpression='attribute_not_exists(ModelCalls) OR ModelCalls < :limit',
+                    ExpressionAttributeValues={':one':{'N':'1'}, ':limit':{'N':str(settings().max_model_calls_per_day)}})
             response = getattr(client(service), operation)(**payload)
             # Streaming bodies must be consumed while the request is in scope.
             if 'response' in response and hasattr(response['response'], 'read'):

@@ -73,7 +73,7 @@ export default function Workbench() {
 
   return <>
 
-    <Heading eyebrow="PATIENT CARE WORKBENCH" title="Care, without interruption." description="Follow one recovery episode from discharge to a coordinated care response." action={<button className="button ghost" disabled={busy || health?.mode === 'live'} title={health?.mode === 'live' ? 'Reset is available in offline demo mode only' : 'Reset this synthetic episode'} onClick={() => void run(async () => {await workflow('reset', selected); setStep(1); setTab('WHATSAPP');})}><RotateCcw size={15}/> Reset demo</button>}/>
+    <Heading eyebrow="PATIENT CARE WORKBENCH" title="Care, without interruption." description="Follow one recovery episode from discharge to a coordinated care response." action={<button className="button ghost" disabled={busy || (health?.mode === 'live' && !health?.synthetic_reset)} title={health?.mode === 'live' && !health?.synthetic_reset ? 'Reset is available in offline demo mode only' : 'Reset this synthetic episode'} onClick={() => void run(async () => {await workflow('reset', selected); setStep(1); setTab('WHATSAPP');})}><RotateCcw size={15}/> Reset demo</button>}/>
 
     {health?.mode === 'live' && <div className="aws-connection-note"><ShieldCheck size={17}/><span><strong>{profile === 'admin' ? 'AWS storage & Bedrock connected.' : 'Synthetic care demonstration.'}</strong> Patient records are fictional. Phone conversations are previews; disconnected channels show “Not sent”.</span></div>}
 

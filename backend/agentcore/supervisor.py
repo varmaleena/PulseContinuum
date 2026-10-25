@@ -5,10 +5,10 @@ import html
 import io
 import json
 from email.message import EmailMessage
-from pathlib import Path
 
 from agentcore.memory_graph import MemoryGraph
 from agentcore.vision_forensics import analyze_patient_submission
+from artifact_store import save_artifact
 from aws_client import call
 from config import settings
 from mcp_gateway.cds_dispatcher_mcp import AWSCDSEngine
@@ -213,8 +213,7 @@ class Supervisor:
             pdf = make_pdf('PulseContinuum Clinical Audit', [state.name, episode_id,
                 f'Risk indicator: {state.risk_score}/100', 'Clinician review required. No new prescription issued.',
                 *state.red_flags, f'Order: {state.order["order_id"]}', f'SHA-256: {digest}', f'HMAC: {signature}'])
-            audit_path = Path(settings().data_dir) / f'{episode_id}-audit.pdf'
-            audit_path.write_bytes(pdf)
+            save_artifact(f'{episode_id}-audit.pdf', pdf, 'application/pdf')
             mime = EmailMessage()
             mime['Subject'] = subject
             mime['From'] = settings().ses_verified_sender or 'demo@example.org'
