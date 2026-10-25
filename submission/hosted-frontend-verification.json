@@ -1,0 +1,8 @@
+{
+  "url": "https://pulsecontinuum.vercel.app",
+  "anonymous": "redirect to sign-in",
+  "sign_in_page": 200,
+  "care": "PASS: signed browser session and role access",
+  "admin": "PASS: signed browser session and role access",
+  "logout": "PASS"
+}
