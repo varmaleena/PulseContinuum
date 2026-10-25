@@ -40,7 +40,8 @@ def exercise(configured):
                 assert response.status_code == 503, response.status_code
                 print('PASS: missing required credentials fails closed (503)')
                 return
-            assert response.status_code == 401, response.status_code
+            assert response.status_code == 307, response.status_code
+            assert client.get('/login').status_code == 200
             assert client.get('/api/patients').status_code == 401
             assert client.get('/overview', auth=(username, 'incorrect')).status_code == 401
             for page in ['overview', 'workbench', 'pharmacy-rcs']:
@@ -72,8 +73,25 @@ def exercise(configured):
             assert client.post('/api/profile', auth=(username,password), json={'profile':'care'},
                 headers={'origin':origin}).status_code == 200
             assert client.get('/api/telemetry', auth=(username,password)).status_code == 403
+            client.cookies.clear()
+            assert client.post('/api/auth/login',json={'username':'care','password':care_password},
+                headers={'origin':'https://untrusted.example'}).status_code == 403
+            signed_in = client.post('/api/auth/login',json={'username':'care','password':care_password},headers={'origin':origin})
+            assert signed_in.status_code == 200
+            assert 'HttpOnly' in signed_in.headers['set-cookie']
+            assert client.get('/workbench').status_code == 200
+            assert client.get('/api/telemetry').status_code == 403
+            assert client.post('/api/profile',**switch).status_code == 403
+            assert client.post('/api/auth/logout',headers={'origin':origin}).status_code == 200
+            assert client.get('/api/patients').status_code == 401
+            assert client.post('/api/auth/login',json={'username':username,'password':password},headers={'origin':origin}).status_code == 200
+            assert client.post('/api/profile',**switch).status_code == 200
+            assert client.get('/telemetry').status_code == 200
+            client.cookies.clear()
+            client.cookies.set('pulse-session','forged.admin.session')
+            assert client.get('/api/telemetry').status_code == 401
             print('PASS: anonymous/wrong credentials rejected; care routes work; raw API/page access blocked; '
-                  'forged headers/cookie cannot elevate care credentials; same-origin admin switching works')
+                  'forged headers/cookie cannot elevate care credentials; signed browser login/logout and admin switching work')
     finally:
         process.terminate()
         try:

@@ -30,7 +30,7 @@ Middleware overwrites internal profile/access headers, redirects care requests a
 
 ## Boundaries
 
-This is a coarse two-profile prototype, not a complete hospital authorization system. It does not implement individual clinician identities, hospital SSO, tenants, patient assignment, consent workflows, access audit retention or emergency access. Admin can inspect synthetic clinical context as part of troubleshooting; there is no separate de-identified engineering tenant. Credential rotation and session lifecycle are basic HTTP-auth concerns in this prototype. A real deployment requires institutional identity and authorization design.
+This is a coarse two-profile prototype, not a complete hospital authorization system. It does not implement individual clinician identities, hospital SSO, tenants, patient assignment, consent workflows, access audit retention or emergency access. Admin can inspect synthetic clinical context as part of troubleshooting; there is no separate de-identified engineering tenant. The hosted sign-in form issues an HMAC-authenticated, HttpOnly session cookie with an eight-hour lifetime. Signing keys are derived with domain separation from the private administrator secret. Logout clears the cookie; rotating that secret invalidates existing sessions. Individual session revocation and institutional SSO are not implemented. HTTP Basic credentials remain supported for verification clients. A real deployment requires institutional identity and authorization design.
 
 Direct FastAPI access uses a service bearer token rather than these frontend profiles, which is why the backend must remain private. Do not share that token with users.
 

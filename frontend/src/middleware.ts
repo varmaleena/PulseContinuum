@@ -1,17 +1,17 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {adminPage, careApi, Profile, profileCookie} from '@/lib/profiles';
 
-// Optional local access gate; mandatory when REQUIRE_JUDGE_AUTH=true on a public host.
-async function equalSecret(a: string, b: string) {
-  const encode = new TextEncoder();
-  const [left, right] = await Promise.all([a,b].map(value => crypto.subtle.digest('SHA-256', encode.encode(value))));
-  const x = new Uint8Array(left), y = new Uint8Array(right);
-  let difference = 0;
-  for (let i=0; i<x.length; i++) difference |= x[i] ^ y[i];
-  return difference === 0;
-}
+import {equalSecret,readSession,sessionCookie} from '@/lib/session';
 
 export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  if (path === '/login' || path === '/api/auth/login' || path === '/api/auth/logout') {
+    const headers = new Headers(request.headers);
+    headers.set('x-pulse-public-auth','true');
+    const response = NextResponse.next({request:{headers}});
+    response.headers.set('Cache-Control','private, no-store');
+    return response;
+  }
   const username = process.env.JUDGE_USERNAME;
   const password = process.env.JUDGE_PASSWORD;
   const configured = Boolean(username && password);
@@ -23,21 +23,24 @@ export async function middleware(request: NextRequest) {
   } catch { /* Malformed credentials are rejected below. */ }
   let access: Profile = 'admin';
   if (configured) {
-    if (await equalSecret(supplied, `${username}:${password}`)) access = 'admin';
+    const session = await readSession(request.cookies.get(sessionCookie)?.value);
+    if (session) access = session;
+    else if (await equalSecret(supplied, `${username}:${password}`)) access = 'admin';
     else if (process.env.CARE_USERNAME && process.env.CARE_PASSWORD && await equalSecret(supplied, `${process.env.CARE_USERNAME}:${process.env.CARE_PASSWORD}`)) access = 'care';
-    else return new NextResponse('Enter the private credentials supplied with the demonstration.', {
-      status:401, headers:{'WWW-Authenticate':'Basic realm="PulseContinuum access", charset="UTF-8"', 'Cache-Control':'no-store'}
-    });
+    else {
+      if (path.startsWith('/api/') || request.headers.has('authorization')) return NextResponse.json({detail:'Please sign in to continue.'}, {status:401});
+      else return NextResponse.redirect(new URL('/login',request.url));
+    }
   }
   // A profile cookie selects a view; it never grants permission beyond authenticated access.
   // Loopback demo mode intentionally allows both synthetic profiles without credentials.
   const profile: Profile = access === 'admin' && request.cookies.get(profileCookie)?.value === 'admin' ? 'admin' : 'care';
-  const path = request.nextUrl.pathname;
   if (profile === 'care' && adminPage(path)) return NextResponse.redirect(new URL('/overview', request.url));
   if (profile === 'care' && path.startsWith('/api/') && path !== '/api/profile' && !careApi(path)) {
     return NextResponse.json({detail:'Admin & engineering access is required.'}, {status:403});
   }
   const headers = new Headers(request.headers);
+  headers.set('x-pulse-public-auth','false');
   headers.set('x-pulse-profile', profile);
   headers.set('x-pulse-access', access);
   headers.set('x-pulse-demo', String(!configured));

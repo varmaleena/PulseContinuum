@@ -23,6 +23,7 @@ export default function Sidebar() {
       window.location.assign(next === 'admin' ? '/agentcore' : '/overview');
     } catch (e) {setError((e as Error).message); setSwitching(false);}
   }
+  async function logout() {await fetch('/api/auth/logout',{method:'POST'}); window.location.assign('/login');}
   return <aside className={'sidebar '+(admin ? 'admin-sidebar' : '')}>
     <Link href={admin ? '/agentcore' : '/overview'} className="brand"><span className="brandmark"><Activity size={24}/></span><span>Pulse<span className="brand-light">Continuum</span><small>CLINICAL INTELLIGENCE</small></span></Link>
     <div className="profile-picker" aria-label="Workspace profile">
@@ -34,6 +35,6 @@ export default function Sidebar() {
     <div className="workspace"><span className="hospital">{admin ? <ShieldCheck size={18}/> : <HeartPulse size={18}/>}</span><div>{admin ? 'Technical operations' : 'Continuum Demo Network'}<small>{admin ? 'Restricted system visibility' : 'Post-discharge operations'}</small></div><span className="workspace-dot"/></div>
     <div className="nav-label">{admin ? 'ADMIN & ENGINEERING' : 'CARE OPERATIONS'}</div>
     <nav>{items.map((item,index) => <Link key={item.path} href={item.path} className={path === item.path ? 'nav-item active' : 'nav-item'}><item.icon size={18}/><span>{item.title}</span><small>{String(index+1).padStart(2,'0')}</small></Link>)}</nav>
-    <div className="sidebar-bottom"><div className="protocol"><span className="dot"/>{admin ? 'Inspect system behavior' : 'Continuity of care'}<p>{admin ? 'Execution traces, delivery events and AWS request evidence.' : 'One patient. Every channel. Clinician oversight at every step.'}</p><Link href={admin ? '/telemetry' : '/workbench'}>{admin ? 'Inspect AWS requests' : 'Open care workbench'}<ArrowUpRight size={13}/></Link></div><div className="user"><span className="avatar">{admin ? 'AD' : 'CT'}</span><div>{admin ? 'Technical administrator' : 'Clinical operations'}<small>Synthetic demonstration</small></div></div></div>
+    <div className="sidebar-bottom"><div className="protocol"><span className="dot"/>{admin ? 'Inspect system behavior' : 'Continuity of care'}<p>{admin ? 'Execution traces, delivery events and AWS request evidence.' : 'One patient. Every channel. Clinician oversight at every step.'}</p><Link href={admin ? '/telemetry' : '/workbench'}>{admin ? 'Inspect AWS requests' : 'Open care workbench'}<ArrowUpRight size={13}/></Link></div><div className="user"><span className="avatar">{admin ? 'AD' : 'CT'}</span><div>{admin ? 'Technical administrator' : 'Clinical operations'}<small>Synthetic demonstration</small></div></div>{!demoProfiles && <button className="profile-signout" onClick={() => void logout()}>Sign out</button>}</div>
   </aside>;
 }

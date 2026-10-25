@@ -46,3 +46,13 @@ The original stack rolled back because its SES receipt rule lacked SNS publish p
 ## Two-profile separation — 2026-10-24
 
 Care team is the default with three clinical pages; Admin & engineering contains the two technical pages. Production build/TypeScript/lint passed. The executable access verification passed care/API restrictions, forged header/cookie attempts, JSON trace/account redaction, same-origin switching, authorized admin access and missing-configuration fail-closed behavior. Backend regression suite: 12 passed; Ruff clean. The care selector and admin navigation were exercised in the browser and returned to Care team. Local profiles are demonstration views; authenticated hosting uses separate care/admin credentials and requires a private backend.
+
+## Hosted Vercel + Lambda deployment — 2026-10-25
+
+- Vercel production frontend: https://pulsecontinuum.vercel.app; five application pages with a separate sign-in screen.
+- AWS Lambda backend deployed in `PulseContinuumWebBackend`; direct unauthenticated requests return 401. Lambda uses an execution role rather than static AWS keys on Vercel.
+- A hosted synthetic flow verified S3 discharge upload, validated live Bedrock multimodal output, EventBridge publication, disabled outbound messaging, clinical PDF/media retrieval and durable telemetry. The tested episode was reset afterward. Evidence: `submission/hosted-backend-verification.json`.
+- Hosted artifacts persist privately in S3, and workflow telemetry persists in DynamoDB. Idle polling is not persisted as a repeating write stream. Inference attempts are limited atomically to ten per UTC day; a workflow lease guards concurrent mutations.
+- Backend regression suite: 14 passed, including cache-loss artifact recovery and inference-allowance rejection. Ruff clean; frontend production build/TypeScript/lint passed.
+- Signed browser sign-in/logout, forged-session rejection, care/admin permissions and fail-closed settings passed the executable access verification. Credentials remain private and are excluded from Git/source packages.
+- Public frontend API checks verified all three care pages, both admin pages, profile switching, patient data and telemetry. Browser-password-only access was replaced with the sign-in form for clarity.

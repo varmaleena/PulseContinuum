@@ -8,7 +8,7 @@ Post-discharge care continuity with multimodal evidence, caregiver fallback, and
 
 **Next.js · FastAPI · Amazon Bedrock · DynamoDB · S3 · Amazon SES · AWS CDK**
 
-[Start the demo](#run-the-demo) · [Two profiles](#two-profiles-one-episode) · [Architecture](#architecture) · [Verification](#evidence-you-can-inspect) · [Recording script](submission/DEMO_SCRIPT.md)
+[Open hosted demo](https://pulsecontinuum.vercel.app) · [Run locally](#run-the-demo) · [Two profiles](#two-profiles-one-episode) · [Architecture](#architecture) · [Verification](#evidence-you-can-inspect) · [Recording script](submission/DEMO_SCRIPT.md)
 
 </div>
 
@@ -70,7 +70,7 @@ The separation extends to the server: the care profile cannot retrieve telemetry
 
 | Check | Verified result | Evidence |
 | --- | --- | --- |
-| Backend regression suite | **12 passed** | [Verification record](VERIFICATION.md) |
+| Backend regression suite | **14 passed** | [Verification record](VERIFICATION.md) |
 | Deterministic safety/schema evaluation | **19 / 19 passed** | [Cases and results](submission/evaluation-results.json) |
 | Frontend | Production build, TypeScript and lint passed | [Verification record](VERIFICATION.md) |
 | Judge/profile access | Anonymous access rejected; care/admin boundaries tested | [Executable check](tools/verify_judge_access.py) |
@@ -87,7 +87,13 @@ The offline safety score measures deterministic code and schema behavior. It doe
 
 The Next.js server proxies clinical requests to FastAPI with a private backend token. The Python orchestrator applies deterministic evidence checks and invokes AWS adapters. DynamoDB stores episode state; S3 stores discharge assets. EventBridge, SNS, SQS and a delayed Lambda support the continuity-event infrastructure. SES supplies the verified email path.
 
-The current orchestration runs locally in Python, with two FastMCP tool servers. **Managed AgentCore Runtime, Memory and Gateway are not deployed.** A managed Bedrock Guardrail is optional and currently unconfigured; the local formulary gate remains active. See [architecture and trust boundaries](submission/ARCHITECTURE.md).
+The hosted Python orchestrator runs in AWS Lambda; the local launcher remains available. Two FastMCP tool servers expose the same tool implementations. **Managed AgentCore Runtime, Memory and Gateway are not deployed.** A managed Bedrock Guardrail is optional and currently unconfigured; the local formulary gate remains active. See [architecture and trust boundaries](submission/ARCHITECTURE.md).
+
+## Hosted demo
+
+Open **https://pulsecontinuum.vercel.app** and sign in with the private credentials supplied to judges. The admin account can switch between Care team and Admin & engineering; the care account cannot access technical pages. Credentials are never published in this repository.
+
+The frontend is hosted on Vercel, with a bearer-protected AWS Lambda backend, DynamoDB episode state, private S3 artifacts and durable telemetry. The hosted demo allows ten Bedrock inference attempts per UTC day and disables all outbound messaging. Its clinical audit packet is generated and stored, but no additional email is sent. Synthetic episode reset is enabled for repeatable judging. See [hosting details](docs/HOSTED_DEPLOYMENT.md).
 
 ## Run the demo
 
@@ -169,9 +175,9 @@ The access check starts temporary local frontend servers and tests anonymous req
 | Real AWS storage, inference, events and approved email evidence | Phone subscription/onboarding and handset verification |
 | Explicit-form discharge parsing and entered transcripts | Robust document extraction and automatic speech recognition |
 | Synthetic pharmacy requests and signed audit payloads | Real provider/ERP integration and clinical validation |
-| Local generated PDF/media storage | Durable hosted artifacts and verified public HTTPS deployment |
+| Private S3-backed hosted PDF/media storage | Production retention and institutional access policies |
 
-Public hosting and a recorded demo video remain pending; no live URL or video is implied by this repository. Clinical audit HMACs provide shared-secret payload integrity, not physician digital signatures. This prototype is not certified for clinical deployment and makes no compliance or measured outcome claim.
+The hosted app is available at **https://pulsecontinuum.vercel.app** with private judge credentials. A recorded demo video remains pending. Clinical audit HMACs provide shared-secret payload integrity, not physician digital signatures. This prototype is not certified for clinical deployment and makes no compliance or measured outcome claim.
 
 ## Project map
 

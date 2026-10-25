@@ -19,8 +19,8 @@ Start with `DEMO_SCRIPT.md`; use `ARCHITECTURE.md` for the system boundary. Loca
 
 ## Remaining submission actions
 
-- Publish the sanitized source to https://github.com/varmaleena/PulseContinuum and verify its contents.
-- Deploy and verify an HTTPS application URL with private judge credentials, within the agreed AWS budget. Keep access available throughout judging.
+- Published source: https://github.com/varmaleena/PulseContinuum.
+- Hosted application: https://pulsecontinuum.vercel.app. Private judge access is supplied separately; keep it available throughout judging.
 - Record and upload a public approximately three-minute video using the script. Supply its URL.
 - Complete the event submission form with repository, application, video and architecture links.
 
