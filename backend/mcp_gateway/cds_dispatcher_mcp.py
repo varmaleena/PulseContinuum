@@ -37,7 +37,7 @@ class AWSCDSEngine:
 
     def send_sms_deadzone_failover(self, destination_phone: str, caregiver_phone: str,
                                    episode_id: str, alert_text: str) -> list[dict]:
-        text = f'PulseContinuum {episode_id}: {alert_text} Data link lost. Reply 1: request nurse + meds; 2: on-call clinician.'
+        text = f'PulseContinuum {episode_id}: {alert_text} Primary-channel delivery is unconfirmed. Reply 1: medication review; 2: clinician assessment. No medicine order is created.'
         return [self.dispatch('SMS', 'pinpoint-sms-voice-v2', 'send_text_message', {
             'DestinationPhoneNumber': phone, 'OriginationIdentity': settings().sms_origination_id,
             'MessageBody': text, 'MessageType': 'TRANSACTIONAL'}, 'PINPOINT_SMS',

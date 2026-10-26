@@ -5,10 +5,11 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-async function proxy(request: NextRequest, {params}: {params: {path: string[]}}) {
+async function proxy(request: NextRequest, {params}: {params: Promise<{path: string[]}>}) {
   const isCare = request.headers.get('x-pulse-profile') !== 'admin';
   if (isCare && !careApi(request.nextUrl.pathname)) return Response.json({detail:'Admin & engineering access is required.'}, {status:403});
-  const upstream = new URL(`/api/${params.path.map(encodeURIComponent).join('/')}`, process.env.BACKEND_URL || 'http://127.0.0.1:8000');
+  const resolved = await params;
+  const upstream = new URL(`/api/${resolved.path.map(encodeURIComponent).join('/')}`, process.env.BACKEND_URL || 'http://127.0.0.1:8000');
   upstream.search = request.nextUrl.search;
   const headers = new Headers();
   const contentType = request.headers.get('content-type');

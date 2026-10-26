@@ -21,8 +21,8 @@ def check_interactions(transcript: str) -> dict:
 
 def reserve_order(episode_id: str, option_id: str) -> dict:
     option = next(o for o in inventory() if o['id'] == option_id)
-    result = {'order_id': f'DEMO-RX-{episode_id}-{option_id}', 'status': 'PENDING_CLINICIAN_APPROVAL',
-              'option': option, 'created_at': now(), 'fulfillment_mode': 'DEMO_ERP'}
+    result = {'order_id': f'DEMO-REVIEW-{episode_id}-{option_id}', 'status': 'PENDING_CLINICIAN_REVIEW',
+              'option': option, 'created_at': now(), 'fulfillment_mode': 'NO_DISPENSING' if option_id == 'triage' else 'DEMO_ERP'}
     telemetry.emit({'category': 'MCP_PHARMACY', 'operation': 'reserve_order', 'execution_mode': 'DEMO',
                     'request': {'episode_id': episode_id, 'option_id': option_id}, 'response': result})
     return result

@@ -15,3 +15,6 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 export function workflow(action: string, episode_id: string, extra: Record<string, string> = {}) {return api<Patient>(`/workflow/${action}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({episode_id, ...extra})});}
 export const time = (value: string) => new Date(value).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+
+// Do not present a model's free-text risk-number claim as a validated clinical prediction.
+export const evidenceSummary = (text: string) => text.replace(/(?:The\s+)?(?:readmission\s+)?risk score[^.!?]*(?:[.!?]|$)/gi,'').trim();

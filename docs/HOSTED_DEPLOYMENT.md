@@ -1,6 +1,6 @@
 # Hosted demonstration
 
-Application: **https://pulsecontinuum.vercel.app**. Sign in using the private credentials supplied separately. The administrator can switch between both profiles; care credentials provide clinical access only.
+Application: **https://pulsecontinuum.vercel.app**. No login is required in the explicitly enabled public synthetic-demo mode. Both view profiles are available to judges; this is not a hospital identity/authorization deployment. The optional authenticated mode remains available by disabling `PUBLIC_DEMO`.
 
 ## Deployment boundary
 
@@ -18,7 +18,7 @@ The frontend polls bounded endpoints instead of maintaining SSE or WebSocket con
 
 Hosted uploads must total less than 3 MB per request. Audit/media artifacts persist across cold starts. Telemetry persists workflow execution records, excludes binary bodies, bounds oversized payloads and expires after seven days. Polling reads are not persisted again, avoiding an idle telemetry write loop.
 
-Ten Bedrock inference attempts are allowed per UTC day. Attempts are counted atomically before model invocation, including failures. Resetting an episode does not reset the allowance. This helps constrain demo use; it is not an AWS billing hard cap. No provisioned compute or paid Vercel upgrade was added.
+Ten fresh Bedrock inference attempts are allowed per UTC day. The three recorded AWS test cases can be explored without additional model calls; replay is clearly labeled and does not fabricate a new inference or RequestId. Attempts are counted atomically before model invocation, including failures. Resetting an episode does not reset the allowance. This helps constrain demo use; it is not an AWS billing hard cap. No provisioned compute or paid Vercel upgrade was added.
 
 ## Rebuild and deploy
 

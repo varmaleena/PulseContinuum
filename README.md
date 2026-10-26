@@ -37,9 +37,9 @@ This is a working AWS-connected hackathon prototype using **synthetic records on
 | **Care team — default** | Clinicians and care coordinators | Clinical overview, patient workbench, care requests and clinical audit |
 | **Admin & engineering** | Technical administrators and demo reviewers | Agent orchestration, identity graph, execution traces and raw AWS telemetry |
 
-In the local synthetic demo, use the **Demo profiles** selector to switch between the two perspectives. Switch to Admin & engineering to explain how the workflow runs, then return to Care team to continue the recovery story.
+In the public or local synthetic demo, use the **Demo profiles** selector to switch between the two perspectives. Switch to Admin & engineering to explain how the workflow runs, then return to Care team to continue the recovery story.
 
-The separation extends to the server: the care profile cannot retrieve telemetry or the raw event stream, and clinical API responses omit raw traces and AWS identifiers. On a secured deployment, care credentials cannot elevate privileges through a profile cookie or forged role header. The local selector is explicitly a demo convenience, not a hospital identity system. See [access design](docs/ACCESS_PROFILES.md).
+The view separation extends to the server: the care profile cannot retrieve telemetry or the raw event stream, and clinical API responses omit raw traces and AWS identifiers. On a secured deployment, care credentials cannot elevate privileges through a profile cookie or forged role header. The public selector is explicitly a synthetic demo convenience, not a hospital identity system. Both perspectives are open to judges; authenticated hosting remains an optional mode. See [access design](docs/ACCESS_PROFILES.md).
 
 <details>
 <summary><strong>See the two workspaces</strong></summary>
@@ -54,15 +54,33 @@ The separation extends to the server: the care profile cannot retrieve telemetry
 
 </details>
 
+## Judge quick start — no login
+
+Open **https://pulsecontinuum.vercel.app** and choose **Explore recorded case** on one of the three tested stories:
+
+| Case | Failure mode being demonstrated | Expected safe next step |
+| --- | --- | --- |
+| Post-surgery fever + unclear tablet | A medication label must not override reported warning symptoms | Request clinician assessment; no medicine order |
+| Wound deterioration + unrelated label | Out-of-formulary evidence must not become an automatic substitution | Request treating-team assessment; preserve the discrepancy |
+| Heart-failure warning symptoms + data loss | The caregiver needs the same assessment context after a communication failure | Preview fallback, record caregiver acknowledgment, keep reassessment pending |
+
+Recorded-case loading retrieves the actual AWS test evidence from private storage; **it is not a fresh Bedrock inference**. You can then interactively create the review, acknowledgment and follow-up records without consuming the live model allowance. The separate live-analysis action remains available and is bounded for cost control.
+
+[Three-case live AWS test results](submission/high-risk-journey-results.json) · [Independent readiness assessment](submission/JUDGE_READINESS.md)
+
 ## Follow one recovery story
 
-**Discharge plan → patient evidence → safety review → continuity fallback → clinician audit**
+**Discharge plan → patient evidence → review request → synthetic clinician decision → patient teach-back → follow-up record**
 
 1. **Start with the written plan.** Select a synthetic case and ingest its discharge PDF. The parser accepts explicit physician medication rows instead of inventing prescriptions from an unsupported document.
 2. **Review the patient's evidence.** Submit the case-specific symptom report and an optional synthetic medication-label image. Connected mode sends actual image bytes and text to Nova Pro; structured output must validate before use.
 3. **Apply the safety gate.** Unreadable labels, unknown drugs or strength mismatches require clinical review. Model risk scores are advisory review signals, not validated predictions.
 4. **Demonstrate continuity.** A delivery timeout or blackout moves the episode into the patient/caregiver fallback path. The interface distinguishes a preview from a real send.
-5. **Close the handoff with evidence.** A caregiver response or care-option request creates an idempotent synthetic reservation pending clinician approval and a clinical audit packet with payload integrity evidence.
+5. **Request the clinical handoff.** A direct request or caregiver response opens the same review task. Generic/brand delivery attempts are rejected; an AI label check is not dispensing authority.
+6. **Record the next human step.** In **Review & follow-up**, record a clearly labeled synthetic clinician decision. Symptomatic cases cannot be cleared into the routine-plan path.
+7. **Capture acknowledgment and follow-up.** Record the patient/caregiver's own words, then the synthetic contact outcome. Persistent concern remains a reassessment request; the app never marks clinical recovery as verified.
+
+**Why the email/PDF exists:** it is a structured handoff for the clinical team: written plan, patient report, reasons for review, recorded decision, teach-back and follow-up. It is not a prescription, an appointment booking or proof of completed treatment. Hosted packets are generated and stored without sending email; updates do not silently send another message.
 
 **Phone delivery is currently blocked by AWS account onboarding.** WhatsApp, RCS and SMS adapters exist, but connected-mode attempts are labeled `NOT_SENT`. The complete simulated phone flow is available in offline demo mode. Pharmacy inventory, copays, ETAs and appointments are fixtures.
 
@@ -70,7 +88,8 @@ The separation extends to the server: the care profile cannot retrieve telemetry
 
 | Check | Verified result | Evidence |
 | --- | --- | --- |
-| Backend regression suite | **14 passed** | [Verification record](VERIFICATION.md) |
+| Backend regression suite | **23 passed** | [Verification record](VERIFICATION.md) |
+| Three distinct high-risk AWS journeys | **3 / 3 passed; 28 checks** | [Live scenario results](submission/high-risk-journey-results.json) |
 | Deterministic safety/schema evaluation | **19 / 19 passed** | [Cases and results](submission/evaluation-results.json) |
 | Frontend | Production build, TypeScript and lint passed | [Verification record](VERIFICATION.md) |
 | Judge/profile access | Anonymous access rejected; care/admin boundaries tested | [Executable check](tools/verify_judge_access.py) |
@@ -91,9 +110,9 @@ The hosted Python orchestrator runs in AWS Lambda; the local launcher remains av
 
 ## Hosted demo
 
-Open **https://pulsecontinuum.vercel.app** and sign in with the private credentials supplied to judges. The admin account can switch between Care team and Admin & engineering; the care account cannot access technical pages. Credentials are never published in this repository.
+Open **https://pulsecontinuum.vercel.app** directly: **the public synthetic judge demo requires no login**. Use the Demo profiles selector to inspect both the clinical experience and technical evidence. This public view selector is not hospital authorization; backend service credentials stay private.
 
-The frontend is hosted on Vercel, with a bearer-protected AWS Lambda backend, DynamoDB episode state, private S3 artifacts and durable telemetry. The hosted demo allows ten Bedrock inference attempts per UTC day and disables all outbound messaging. Its clinical audit packet is generated and stored, but no additional email is sent. Synthetic episode reset is enabled for repeatable judging. See [hosting details](docs/HOSTED_DEPLOYMENT.md).
+The frontend is hosted on Vercel, with a bearer-protected AWS Lambda backend, DynamoDB episode state, private S3 artifacts and durable telemetry. The hosted demo allows ten fresh Bedrock inference attempts per UTC day and disables all outbound messaging. Recorded AWS-case exploration does not consume that allowance. Its clinical audit packet is generated and stored, but no additional email is sent. Synthetic episode reset is enabled for repeatable judging. See [hosting details](docs/HOSTED_DEPLOYMENT.md).
 
 ## Run the demo
 
@@ -165,7 +184,7 @@ With the backend running and the production frontend built:
 python tools/verify_judge_access.py
 ```
 
-The access check starts temporary local frontend servers and tests anonymous requests, valid profiles, forged role headers/cookies, cross-origin switching and fail-closed configuration. It sends no clinical messages and invokes no model.
+The access check starts temporary local frontend servers and tests explicit public demo mode as well as authenticated profiles, forged role headers/cookies, cross-origin switching and fail-closed private configuration. It sends no clinical messages and invokes no model.
 
 ## Scope and next steps
 

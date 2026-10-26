@@ -37,3 +37,7 @@ Direct FastAPI access uses a service bearer token rather than these frontend pro
 ## Verification
 
 Run `python tools/verify_judge_access.py` after building the frontend and starting the backend. It verifies anonymous rejection, care routes, blocked admin pages/APIs, forged-header/cookie resistance, clinical JSON redaction, cross-origin switching rejection, authorized admin switching and fail-closed missing configuration.
+
+## Public judge demonstration — explicitly enabled
+
+The deployed hackathon site uses `PUBLIC_DEMO=true` at the user's request. It opens the six synthetic cases and both view profiles without account credentials; `/login` redirects to the overview. This is a public demo selector, not an authentication boundary. The backend still requires its private service token, S3 remains private, outbound messages remain disabled, and the live model allowance remains enforced. Set `PUBLIC_DEMO=false` to restore the authenticated behavior documented above. Do not use public demo mode for real clinical data.

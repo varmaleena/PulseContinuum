@@ -73,8 +73,8 @@ class Supervisor:
     async def ingest(self, episode_id: str, pdf: bytes) -> PatientState:
         async with self.lock(episode_id):
             state = self.memory.get(episode_id)
-            if state.order:
-                raise ValueError('Reset this synthetic episode before replacing a discharge plan with an active handoff.')
+            if state.order or state.analysis:
+                raise ValueError('Reset this synthetic episode before replacing a discharge plan with analyzed evidence or an active handoff.')
             text = '\n'.join(page.extract_text() or '' for page in PdfReader(io.BytesIO(pdf)).pages)
             # A deliberately explicit, auditable discharge format. Unsupported PDFs require review.
             meds = []
@@ -110,6 +110,7 @@ class Supervisor:
                 raise ValueError('Reset this synthetic episode before analyzing a new report; the current handoff must remain consistent.')
             if not state.ingested:
                 raise ValueError('Ingest the physician discharge plan first.')
+            state.demo_replay = None
             self.message(state, 'WHATSAPP', transcript, direction='inbound', media_url=media_url, media_type='image' if image else None)
             if audio_url:
                 self.message(state, 'WHATSAPP', 'Voice note attached; supplied transcript used for triage.', direction='inbound', media_url=audio_url, media_type='audio')
@@ -179,8 +180,11 @@ class Supervisor:
                 'DetailType': 'ClinicalDeliveryFailure', 'Detail': json.dumps(detail),
                 'EventBusName': settings().event_bus_name}]}, 'EVENTBRIDGE_FAILOVER',
                 demo={'FailedEntryCount': 0, 'Entries': [{'EventId': 'demo-delivery-failure'}]})
+            report = next((message.text for message in reversed(state.messages)
+                if message.channel == 'WHATSAPP' and message.direction == 'inbound' and message.media_type != 'audio'),
+                'Reported post-discharge symptoms need clinician review.')
             results = self.cds.send_sms_deadzone_failover(state.phone, state.caregiver_phone,
-                episode_id, 'Reported post-discharge symptoms need prompt clinical review.')
+                episode_id, report[:120])
             for phone, result in zip(dict.fromkeys([state.phone, state.caregiver_phone]), results):
                 self.message(state, 'SMS', result['request']['MessageBody'], result, destination=phone)
             self.trace(state, 'Omnichannel Router & Failover Agent', 'Prepared patient/caregiver fallback; inspect each message delivery status', detail)
@@ -205,8 +209,8 @@ class Supervisor:
             state.delivery_status = 'ACKNOWLEDGED'
             self.message(state, channel, reply if channel == 'SMS' else f'Request {option_id}', direction='inbound')
             state.order = reserve_order(episode_id, option_id)
-            state.stage = 'Request reserved; awaiting clinician approval'
-            self.trace(state, 'Pharmacy Fulfillment Agent', 'Idempotent demo reservation; clinician approval required', state.order)
+            state.stage = 'Clinical review requested; clinician decision pending'
+            self.trace(state, 'Care Handoff Coordinator', 'Idempotent synthetic review request; no dispensing or consultation performed', state.order)
             pdf = self.refresh_handoff(state)
             subject, report = state.audit['subject'], state.audit['html']
             mime = EmailMessage()

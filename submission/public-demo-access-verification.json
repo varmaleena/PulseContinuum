@@ -1,0 +1,12 @@
+{
+  "/overview": 200,
+  "/workbench": 200,
+  "/pharmacy-rcs": 200,
+  "/login": 307,
+  "/api/patients": 200,
+  "/api/scenarios": 200,
+  "/agentcore": 200,
+  "/telemetry": 200,
+  "/api/telemetry": 200,
+  "private_backend_anonymous": 401
+}

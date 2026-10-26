@@ -56,3 +56,16 @@ Care team is the default with three clinical pages; Admin & engineering contains
 - Backend regression suite: 14 passed, including cache-loss artifact recovery and inference-allowance rejection. Ruff clean; frontend production build/TypeScript/lint passed.
 - Signed browser sign-in/logout, forged-session rejection, care/admin permissions and fail-closed settings passed the executable access verification. Credentials remain private and are excluded from Git/source packages.
 - Public frontend API checks verified all three care pages, both admin pages, profile switching, patient data and telemetry. Browser-password-only access was replaced with the sign-in form for clarity.
+
+## Patient-journey and judge-access validation — 2026-10-26
+
+- Fixed the incomplete handoff: explicit review request, synthetic clinician decision, patient/caregiver teach-back and follow-up record. Medication delivery and routine-plan clearance are blocked for unresolved warning symptoms; no medication change or recovery is inferred.
+- Backend regression suite: 23 passed. Three distinct high-risk live AWS pathways passed 28 scenario checks and 46 HTTP-response assertions using exactly three fresh Bedrock analyses. No outbound email or phone messages were sent.
+- Real AWS case snapshots are stored privately and replayed with the explicit `RECORDED_AWS_RUN` marker. All three replays were verified not to consume another model allowance.
+- Public demo mode is explicitly enabled at the owner's request. Anonymous requests reach all care pages, both selectable view profiles and the three available scenarios. `/login` redirects to the overview. The direct backend continues returning 401 without its service token.
+- Private-authentication mode and explicit public-demo mode passed the access regression script. Next.js production build/TypeScript/lint passed.
+- Detailed evidence: `submission/high-risk-journey-results.json`, `submission/public-demo-access-verification.json`, `submission/PATIENT_JOURNEY_VALIDATION.md` and `submission/JUDGE_READINESS.md`.
+
+## Framework security review — 2026-10-26
+
+The production audit identified advisories in the old Next.js 14 dependency and nested PostCSS. Upgraded to Next.js 15.5.28, compatible React 19/types and patched PostCSS with an override covering nested copies. Updated asynchronous request-header and route-parameter APIs. Production build/TypeScript/lint and both public/private access-mode checks passed. `npm audit --omit=dev` now reports zero production findings; this is dependency-audit evidence, not a penetration-test or clinical-security certification. The development toolchain still reports moderate findings and is not represented as vulnerability-free.

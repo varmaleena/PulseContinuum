@@ -45,7 +45,8 @@ def test_full_clinical_loop_and_idempotency(client):
     repeated = client.post('/api/workflow/simulate-deadzone-failover', json={'episode_id': episode}).json()
     assert len(repeated['messages']) == len(state['messages'])
     state = client.post('/api/workflow/caregiver-sms-reply', json={'episode_id': episode, 'reply': '1'}).json()
-    assert state['order']['status'] == 'PENDING_CLINICIAN_APPROVAL'
+    assert state['order']['status'] == 'PENDING_CLINICIAN_REVIEW'
+    assert all('nurse + meds' not in message['text'] for message in state['messages'] if message['channel'] == 'SMS')
     assert state['audit']['mode'] == 'DEMO'
     audit = state['audit']
     assert hashlib.sha256(audit['canonical_payload'].encode()).hexdigest() == audit['sha256']
@@ -367,3 +368,16 @@ def test_recorded_scenario_is_labeled_and_does_not_become_fresh_inference(client
     assert restored['order'] is None and restored['clinical_review'] is None
     assert restored['demo_replay']['original_model_request_id']=='stubbed-original-request'
     assert client.post('/api/workflow/replay-scenario',json={'episode_id':'EP-2026-412'}).status_code==422
+
+
+
+def test_new_live_analysis_clears_replay_provenance_and_plan_cannot_change_under_evidence(client):
+    episode='EP-2026-409'
+    client.post('/api/workflow/ingest-discharge',data={'episode_id':episode}).raise_for_status()
+    state=supervisor.memory.get(episode)
+    state.demo_replay={'recorded_at':'2026-10-26T00:00:00Z','description':'Test recorded evidence'}
+    supervisor.memory.save(state)
+    fresh=client.post('/api/workflow/whatsapp-multimodal',data={'episode_id':episode,
+        'transcript':'A new synthetic report with fever.'}).raise_for_status().json()
+    assert fresh['demo_replay'] is None
+    assert client.post('/api/workflow/ingest-discharge',data={'episode_id':episode}).status_code==422
