@@ -1,0 +1,398 @@
+{
+  "tested_at": "2026-10-26T15:13:35.204674+00:00",
+  "scope": "Synthetic hosted engineering verification; no clinical efficacy or recovery claim",
+  "cases": [
+    {
+      "episode_id": "EP-2026-409",
+      "title": "Post-surgery fever & unclear medication",
+      "checks": {
+        "real_validated_inference": true,
+        "unapproved_medication_actions_blocked": true,
+        "ordered_review_acknowledgment_followup": true,
+        "medications_unchanged": true,
+        "recovery_not_fabricated": true,
+        "handoff_hash_verified": true,
+        "handoff_pdf_downloaded": true,
+        "no_email_sent": true,
+        "recorded_replay_does_not_consume_inference_allowance": true
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/workflow/reset",
+          "status": 200,
+          "elapsed_ms": 352.9,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/ingest-discharge",
+          "status": 200,
+          "elapsed_ms": 634.0,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/whatsapp-multimodal",
+          "status": 200,
+          "elapsed_ms": 2847.3,
+          "expected": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/telemetry",
+          "status": 200,
+          "elapsed_ms": 1030.6,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 422,
+          "elapsed_ms": 265.0,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 422,
+          "elapsed_ms": 263.3,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/acknowledge-plan",
+          "status": 422,
+          "elapsed_ms": 267.0,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/follow-up",
+          "status": 422,
+          "elapsed_ms": 267.4,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 200,
+          "elapsed_ms": 426.2,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/clinical-review",
+          "status": 422,
+          "elapsed_ms": 271.5,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/clinical-review",
+          "status": 200,
+          "elapsed_ms": 395.6,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/acknowledge-plan",
+          "status": 200,
+          "elapsed_ms": 390.0,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/follow-up",
+          "status": 200,
+          "elapsed_ms": 421.3,
+          "expected": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/audits/EP-2026-409.pdf",
+          "status": 200,
+          "elapsed_ms": 305.6,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/replay-scenario",
+          "status": 200,
+          "elapsed_ms": 354.5,
+          "expected": 200
+        }
+      ],
+      "model_request_id": "8aaadfc7-ccf6-450d-94e0-955b641314cc",
+      "analysis_ms": 2847.3,
+      "passed": true
+    },
+    {
+      "episode_id": "EP-2026-425",
+      "title": "Wound change & wrong medicine label",
+      "checks": {
+        "real_validated_inference": true,
+        "unapproved_medication_actions_blocked": true,
+        "ordered_review_acknowledgment_followup": true,
+        "medications_unchanged": true,
+        "recovery_not_fabricated": true,
+        "handoff_hash_verified": true,
+        "handoff_pdf_downloaded": true,
+        "no_email_sent": true,
+        "recorded_replay_does_not_consume_inference_allowance": true
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/workflow/reset",
+          "status": 200,
+          "elapsed_ms": 318.0,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/ingest-discharge",
+          "status": 200,
+          "elapsed_ms": 393.7,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/whatsapp-multimodal",
+          "status": 200,
+          "elapsed_ms": 2340.5,
+          "expected": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/telemetry",
+          "status": 200,
+          "elapsed_ms": 537.9,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 422,
+          "elapsed_ms": 264.7,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 422,
+          "elapsed_ms": 266.2,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/acknowledge-plan",
+          "status": 422,
+          "elapsed_ms": 269.6,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/follow-up",
+          "status": 422,
+          "elapsed_ms": 265.9,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 200,
+          "elapsed_ms": 401.1,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/clinical-review",
+          "status": 422,
+          "elapsed_ms": 267.9,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/clinical-review",
+          "status": 200,
+          "elapsed_ms": 379.8,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/acknowledge-plan",
+          "status": 200,
+          "elapsed_ms": 411.4,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/follow-up",
+          "status": 200,
+          "elapsed_ms": 373.5,
+          "expected": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/audits/EP-2026-425.pdf",
+          "status": 200,
+          "elapsed_ms": 291.8,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/replay-scenario",
+          "status": 200,
+          "elapsed_ms": 349.1,
+          "expected": 200
+        }
+      ],
+      "model_request_id": "e8f0f843-5261-49bb-bc50-2add50f48616",
+      "analysis_ms": 2340.5,
+      "passed": true
+    },
+    {
+      "episode_id": "EP-2026-429",
+      "title": "Breathlessness & caregiver fallback",
+      "checks": {
+        "real_validated_inference": true,
+        "unapproved_medication_actions_blocked": true,
+        "caregiver_fallback_preserves_context_without_fake_delivery": true,
+        "ordered_review_acknowledgment_followup": true,
+        "medications_unchanged": true,
+        "recovery_not_fabricated": true,
+        "handoff_hash_verified": true,
+        "handoff_pdf_downloaded": true,
+        "no_email_sent": true,
+        "recorded_replay_does_not_consume_inference_allowance": true
+      },
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/workflow/reset",
+          "status": 200,
+          "elapsed_ms": 321.7,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/ingest-discharge",
+          "status": 200,
+          "elapsed_ms": 402.4,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/whatsapp-multimodal",
+          "status": 200,
+          "elapsed_ms": 2742.0,
+          "expected": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/telemetry",
+          "status": 200,
+          "elapsed_ms": 305.7,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 422,
+          "elapsed_ms": 264.6,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/rcs-action",
+          "status": 422,
+          "elapsed_ms": 265.1,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/acknowledge-plan",
+          "status": 422,
+          "elapsed_ms": 267.1,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/follow-up",
+          "status": 422,
+          "elapsed_ms": 263.3,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/simulate-deadzone-failover",
+          "status": 200,
+          "elapsed_ms": 517.7,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/caregiver-sms-reply",
+          "status": 200,
+          "elapsed_ms": 408.4,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/clinical-review",
+          "status": 422,
+          "elapsed_ms": 267.5,
+          "expected": 422
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/clinical-review",
+          "status": 200,
+          "elapsed_ms": 373.9,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/acknowledge-plan",
+          "status": 200,
+          "elapsed_ms": 370.6,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/follow-up",
+          "status": 200,
+          "elapsed_ms": 369.5,
+          "expected": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/audits/EP-2026-429.pdf",
+          "status": 200,
+          "elapsed_ms": 284.4,
+          "expected": 200
+        },
+        {
+          "method": "POST",
+          "path": "/api/workflow/replay-scenario",
+          "status": 200,
+          "elapsed_ms": 350.7,
+          "expected": 200
+        }
+      ],
+      "model_request_id": "bb428082-8b57-4fd0-89e2-6d4373afba38",
+      "analysis_ms": 2742.0,
+      "passed": true
+    }
+  ],
+  "outbound_messages_sent": 0,
+  "model_attempts_before": 1,
+  "model_attempts_after": 4,
+  "summary": {
+    "scenarios_passed": 3,
+    "total_scenarios": 3,
+    "new_live_inference_attempts": 3,
+    "recorded_replays_verified": 3
+  }
+}

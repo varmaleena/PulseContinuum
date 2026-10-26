@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     config = json.loads((ROOT/'tmp/hosting-config.json').read_text(encoding='utf-8'))
     values = {'BACKEND_URL':config['outputs']['BackendUrl'], 'BACKEND_API_TOKEN':config['api_token'],
-        'REQUIRE_JUDGE_AUTH':'true', 'BACKEND_EVENT_TRANSPORT':'poll',
+        'REQUIRE_JUDGE_AUTH':'true', 'PUBLIC_DEMO':'true', 'BACKEND_EVENT_TRANSPORT':'poll',
         'JUDGE_USERNAME':config['admin_username'], 'JUDGE_PASSWORD':config['admin_password'],
         'CARE_USERNAME':config['care_username'], 'CARE_PASSWORD':config['care_password']}
     env = {**os.environ,'npm_config_cache':str(ROOT.parent/'.npm-cache')}
@@ -23,7 +23,7 @@ def main():
         if result.returncode:
             raise RuntimeError(f'Vercel configuration failed for {key}; no secret output printed')
         print('Configured',key,flush=True)
-    print('Configured eight encrypted server-only variables. No AWS access keys copied.')
+    print('Configured server-only settings, including explicit public synthetic demo mode. No AWS access keys copied.')
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ import {useState} from 'react';
 import {Activity, LayoutDashboard, Smartphone, Network, Pill, Radio, HeartPulse, ArrowUpRight, ShieldCheck, Stethoscope} from 'lucide-react';
 import {usePulse} from './Provider';
 import {Profile} from '@/lib/profiles';
-const careItems = [{path:'/overview', title:'Clinical overview', icon:LayoutDashboard}, {path:'/workbench', title:'Patient workbench', icon:Smartphone}, {path:'/pharmacy-rcs', title:'Care requests & audit', icon:Pill}];
+const careItems = [{path:'/overview', title:'Clinical overview', icon:LayoutDashboard}, {path:'/workbench', title:'Patient workbench', icon:Smartphone}, {path:'/pharmacy-rcs', title:'Review & follow-up', icon:Pill}];
 const adminItems = [{path:'/agentcore', title:'Agent orchestration', icon:Network}, {path:'/telemetry', title:'AWS telemetry', icon:Radio}];
 export default function Sidebar() {
   const path = usePathname();

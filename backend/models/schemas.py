@@ -77,6 +77,28 @@ class PatientState(BaseModel):
     pending_message_id: str | None = None
     delivery_status: str = 'NONE'
     caregiver_confirmed_at: str | None = None
+    clinical_review: dict[str, Any] | None = None
+    patient_acknowledgement: dict[str, Any] | None = None
+    follow_up_record: dict[str, Any] | None = None
+    demo_replay: dict[str, Any] | None = None
+
+
+class ClinicalReviewRequest(BaseModel):
+    episode_id: str
+    decision: Literal['CLINICIAN_CONTACT', 'MEDICATION_RECONCILIATION', 'FOLLOW_DISCHARGE_PLAN']
+    notes: str = Field(min_length=10, max_length=1500)
+
+
+class AcknowledgementRequest(BaseModel):
+    episode_id: str
+    actor: Literal['PATIENT', 'CAREGIVER']
+    teach_back: str = Field(min_length=10, max_length=1500)
+
+
+class FollowUpRequest(BaseModel):
+    episode_id: str
+    outcome: Literal['CONTACT_RECORDED', 'REASSESSMENT_REQUESTED']
+    note: str = Field(min_length=10, max_length=1500)
 
 
 class WorkflowRequest(BaseModel):

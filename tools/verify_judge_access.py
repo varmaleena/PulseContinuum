@@ -12,13 +12,13 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def exercise(configured):
+def exercise(configured, public_demo=False):
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]
     username, password = 'judge', secrets.token_urlsafe(32)
     care_password = secrets.token_urlsafe(32)
-    env = {**os.environ, 'REQUIRE_JUDGE_AUTH': 'true', 'JUDGE_USERNAME': username if configured else '',
+    env = {**os.environ, 'PUBLIC_DEMO':str(public_demo).lower(), 'REQUIRE_JUDGE_AUTH': 'true', 'JUDGE_USERNAME': username if configured else '',
            'JUDGE_PASSWORD': password if configured else '', 'CARE_USERNAME':'care', 'CARE_PASSWORD':care_password}
     command = [shutil.which('node') or 'node', str(ROOT / 'frontend/node_modules/next/dist/bin/next'),
                'start', '--hostname', '127.0.0.1', '--port', str(port)]
@@ -36,6 +36,17 @@ def exercise(configured):
                     time.sleep(0.2)
             else:
                 raise RuntimeError('Judge verification server startup timed out')
+            if public_demo:
+                assert response.status_code == 200
+                assert client.get('/login').status_code == 307
+                assert client.get('/workbench').status_code == 200
+                assert client.get('/api/telemetry').status_code == 403
+                origin = f'http://127.0.0.1:{port}'
+                assert client.post('/api/profile',json={'profile':'admin'},headers={'origin':origin}).status_code == 200
+                assert client.get('/agentcore').status_code == 200
+                assert client.get('/telemetry').status_code == 200
+                print('PASS: explicit public demo opens without login, supports both views, and retains profile filtering')
+                return
             if not configured:
                 assert response.status_code == 503, response.status_code
                 print('PASS: missing required credentials fails closed (503)')
@@ -104,3 +115,4 @@ def exercise(configured):
 if __name__ == '__main__':
     exercise(True)
     exercise(False)
+    exercise(False, public_demo=True)

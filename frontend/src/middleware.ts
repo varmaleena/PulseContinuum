@@ -5,6 +5,8 @@ import {equalSecret,readSession,sessionCookie} from '@/lib/session';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const publicDemo = process.env.PUBLIC_DEMO === 'true';
+  if (publicDemo && path === '/login') return NextResponse.redirect(new URL('/overview',request.url));
   if (path === '/login' || path === '/api/auth/login' || path === '/api/auth/logout') {
     const headers = new Headers(request.headers);
     headers.set('x-pulse-public-auth','true');
@@ -14,8 +16,8 @@ export async function middleware(request: NextRequest) {
   }
   const username = process.env.JUDGE_USERNAME;
   const password = process.env.JUDGE_PASSWORD;
-  const configured = Boolean(username && password);
-  if (!configured && process.env.REQUIRE_JUDGE_AUTH === 'true') return new NextResponse('Judge access is not configured.', {status:503});
+  const configured = Boolean(username && password) && !publicDemo;
+  if (!configured && process.env.REQUIRE_JUDGE_AUTH === 'true' && !publicDemo) return new NextResponse('Judge access is not configured.', {status:503});
   let supplied = '';
   try {
     const header = request.headers.get('authorization') || '';

@@ -30,9 +30,11 @@ def analyze_patient_submission(image_bytes: bytes | None, voice_transcript: str,
                                patient_memory_state: dict, image_format: str = 'jpeg') -> dict:
     demo = {'identified_medications': [], 'clinical_red_flags': [], 'readmission_risk_score': 18,
             'evidence_mode': 'DEMO_UNVERIFIED', 'summary': 'No readable label verified. Request clinician medication reconciliation.'}
-    fever = re.search(r'\b(10[1-9](?:\.\d)?|fever|dizz|बुखार|జ్వరం)', voice_transcript, re.I)
+    symptoms = r'(?:fever|dizziness|dizzy|shortness of breath|breathlessness|breathless|chest pain|chest pressure|uncontrolled bleeding)'
+    reported = re.sub(r'\b(?:no|without|denies|denied|not experiencing|do not have)\s+(?:any\s+)?'+symptoms+r'(?:\s+(?:or|and)\s+'+symptoms+r')?\b', '', voice_transcript, flags=re.I)
+    fever = re.search(r'\b(?:10[1-9](?:\.\d)?|fever|dizz|बुखार|జ్వరం|shortness of breath|breathless|chest pain|chest pressure|uncontrolled bleeding)', reported, re.I)
     if fever:
-        demo.update(clinical_red_flags=['Reported fever and/or dizziness after discharge; prompt clinical review required.'],
+        demo.update(clinical_red_flags=['Reported post-discharge warning symptoms require clinician assessment; this signal is not a diagnosis.'],
                     readmission_risk_score=82,
                     summary='Reported symptoms require prompt clinical review. Do not take an extra tablet based on color.')
     prompt = ('Return JSON only with identified_medications [{name,strength,label_readable}], clinical_red_flags [string], '
@@ -58,6 +60,9 @@ def analyze_patient_submission(image_bytes: bytes | None, voice_transcript: str,
         result['clinical_red_flags'] = list(dict.fromkeys(result['clinical_red_flags'] + demo['clinical_red_flags']))
         result['readmission_risk_score'] = max(82, result['readmission_risk_score'])
     result['execution_mode'] = response['execution_mode']
+    if not image_bytes:
+        for medication in result['identified_medications']:
+            medication['label_readable'] = False
     result['guardrail_verification'] = verify_medications(result['identified_medications'], patient_memory_state['medications'])
     result['managed_guardrail'] = apply_bedrock_guardrail(json.dumps(result))
     if result['managed_guardrail'].get('action') == 'GUARDRAIL_INTERVENED':
@@ -65,5 +70,9 @@ def analyze_patient_submission(image_bytes: bytes | None, voice_transcript: str,
         result['guardrail_verification']['status'] = 'BLOCKED'
         result['guardrail_verification']['dosage_verified'] = False
     result['interactions'] = check_interactions(voice_transcript)
-    result['recommended_rcs_cards'] = inventory()
+    result['review_required'] = bool(result['clinical_red_flags'] or result['readmission_risk_score'] >= 70
+        or not result['guardrail_verification']['dosage_verified'] or result['interactions']['duplicate_nsaid_risk'])
+    result['next_action'] = ('Request clinician assessment; medication delivery is blocked while review is unresolved.'
+        if result['review_required'] else 'Request a care-team review of the written discharge plan; no medication changes were made.')
+    result['recommended_rcs_cards'] = [option for option in inventory() if option['id'] == 'triage'] if result['review_required'] else inventory()
     return result

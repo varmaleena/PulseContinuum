@@ -4,12 +4,14 @@ import hmac
 import html
 import io
 import json
+import textwrap
 from email.message import EmailMessage
 
 from agentcore.memory_graph import MemoryGraph
 from agentcore.vision_forensics import analyze_patient_submission
 from artifact_store import save_artifact
-from aws_client import call
+from aws_client import call, client
+from botocore.exceptions import ClientError
 from config import settings
 from mcp_gateway.cds_dispatcher_mcp import AWSCDSEngine
 from mcp_gateway.pharmacy_erp_mcp import reserve_order
@@ -28,13 +30,13 @@ def make_pdf(title: str, lines: list[str]) -> bytes:
     pdf.setFont('Helvetica-Bold', 18)
     pdf.drawString(50, y, title)
     pdf.setFont('Helvetica', 10)
-    for line in lines:
+    for line in [part for value in lines for part in (textwrap.wrap(str(value), width=90) or [''])]:
         y -= 23
         if y < 60:
             pdf.showPage()
             pdf.setFont('Helvetica', 10)
             y = 780
-        pdf.drawString(50, y, line[:95])
+        pdf.drawString(50, y, line)
     pdf.save()
     return buffer.getvalue()
 
@@ -71,6 +73,8 @@ class Supervisor:
     async def ingest(self, episode_id: str, pdf: bytes) -> PatientState:
         async with self.lock(episode_id):
             state = self.memory.get(episode_id)
+            if state.order:
+                raise ValueError('Reset this synthetic episode before replacing a discharge plan with an active handoff.')
             text = '\n'.join(page.extract_text() or '' for page in PdfReader(io.BytesIO(pdf)).pages)
             # A deliberately explicit, auditable discharge format. Unsupported PDFs require review.
             meds = []
@@ -102,6 +106,8 @@ class Supervisor:
                          audio_url: str | None = None) -> PatientState:
         async with self.lock(episode_id):
             state = self.memory.get(episode_id)
+            if state.order:
+                raise ValueError('Reset this synthetic episode before analyzing a new report; the current handoff must remain consistent.')
             if not state.ingested:
                 raise ValueError('Ingest the physician discharge plan first.')
             self.message(state, 'WHATSAPP', transcript, direction='inbound', media_url=media_url, media_type='image' if image else None)
@@ -117,7 +123,7 @@ class Supervisor:
             state.analysis = analysis
             state.risk_score = analysis['readmission_risk_score']
             state.red_flags = analysis['clinical_red_flags']
-            state.rcs_cards = analysis['recommended_rcs_cards']
+            state.rcs_cards = [option for option in analysis['recommended_rcs_cards'] if option['id'] == 'triage']
             state.stage = 'Clinical review required' if state.risk_score >= 70 else 'Medication review'
             self.trace(state, 'Vision & Audio Forensics Agent', 'Evaluated submitted evidence and patient-reported symptoms',
                        {'mode': analysis['execution_mode'], 'interaction_check': analysis['interactions']})
@@ -130,7 +136,7 @@ class Supervisor:
             state.pending_message_id = result['message_id']
             state.delivery_status = 'PENDING' if state.pending_message_id else 'NOT_SENT'
             result = self.cds.send_rcs_pharmacy_carousel(state.phone, state.name, state.rcs_cards)
-            self.message(state, 'RCS', 'Pharmacy requests and clinical triage options are ready.', result, destination=state.phone)
+            self.message(state, 'RCS', 'A clinician review request is available. The app has not changed the medication plan.', result, destination=state.phone)
             state.active_channel = 'RCS' if result['execution_mode'] != 'NOT_SENT' else 'LOCAL_REVIEW'
             self.trace(state, 'Omnichannel Router & Failover Agent',
                        '15-second delivery watchdog armed' if state.pending_message_id else
@@ -177,7 +183,7 @@ class Supervisor:
                 episode_id, 'Reported post-discharge symptoms need prompt clinical review.')
             for phone, result in zip(dict.fromkeys([state.phone, state.caregiver_phone]), results):
                 self.message(state, 'SMS', result['request']['MessageBody'], result, destination=phone)
-            self.trace(state, 'Omnichannel Router & Failover Agent', 'Read unified memory; sent patient and caregiver SMS', detail)
+            self.trace(state, 'Omnichannel Router & Failover Agent', 'Prepared patient/caregiver fallback; inspect each message delivery status', detail)
             state.stage = 'Caregiver response pending'
             if all(result['execution_mode'] == 'NOT_SENT' for result in results):
                 state.active_channel = 'LOCAL_REVIEW'
@@ -187,33 +193,22 @@ class Supervisor:
     async def fulfill(self, episode_id: str, option_id: str = 'generic', reply: str = '1', channel: str = 'SMS') -> PatientState:
         async with self.lock(episode_id):
             state = self.memory.get(episode_id)
+            if option_id != 'triage' and channel != 'SMS':
+                raise ValueError('Medication delivery is not authorized by an AI label check. Request clinician review instead.')
             if state.order:
                 return state
             if not state.analysis or (channel == 'SMS' and not state.blackout):
                 raise ValueError('No active care request to confirm.')
-            if reply == '2':
-                option_id = 'triage'
+            # A caregiver response requests review, never medication dispensing.
+            option_id = 'triage'
             state.caregiver_confirmed_at = now() if channel == 'SMS' else None
             state.delivery_status = 'ACKNOWLEDGED'
             self.message(state, channel, reply if channel == 'SMS' else f'Request {option_id}', direction='inbound')
             state.order = reserve_order(episode_id, option_id)
             state.stage = 'Request reserved; awaiting clinician approval'
             self.trace(state, 'Pharmacy Fulfillment Agent', 'Idempotent demo reservation; clinician approval required', state.order)
-            canonical = json.dumps({'episode_id': episode_id, 'order': state.order, 'analysis': state.analysis,
-                                    'confirmation': state.caregiver_confirmed_at}, sort_keys=True)
-            digest = hashlib.sha256(canonical.encode()).hexdigest()
-            signature = hmac.new(settings().audit_signing_key.encode(), canonical.encode(), hashlib.sha256).hexdigest()
-            subject = f'Clinical review requested | {episode_id} | {state.name}'
-            report = f'<h1>Clinical escalation & prescription audit</h1><p>{html.escape(state.name)} · {html.escape(episode_id)}</p>'
-            report += f'<p>Risk indicator: {state.risk_score}/100 (decision support, not diagnosis).</p>'
-            report += '<p>Medication identity remains subject to readable label verification and physician review.</p>'
-            report += f'<p>Confirmation: {html.escape(state.caregiver_confirmed_at or "Patient RCS action")}</p>'
-            report += '<ul>' + ''.join(f'<li>{html.escape(str(flag))}</li>' for flag in state.red_flags) + '</ul>'
-            report += f'<p>Request: {html.escape(state.order["order_id"])}</p><p>SHA-256: {digest}</p><p>HMAC-SHA256: {signature}</p>'
-            pdf = make_pdf('PulseContinuum Clinical Audit', [state.name, episode_id,
-                f'Risk indicator: {state.risk_score}/100', 'Clinician review required. No new prescription issued.',
-                *state.red_flags, f'Order: {state.order["order_id"]}', f'SHA-256: {digest}', f'HMAC: {signature}'])
-            save_artifact(f'{episode_id}-audit.pdf', pdf, 'application/pdf')
+            pdf = self.refresh_handoff(state)
+            subject, report = state.audit['subject'], state.audit['html']
             mime = EmailMessage()
             mime['Subject'] = subject
             mime['From'] = settings().ses_verified_sender or 'demo@example.org'
@@ -222,8 +217,130 @@ class Supervisor:
             mime.add_alternative(report, subtype='html')
             mime.add_attachment(pdf, maintype='application', subtype='pdf', filename='clinical-audit.pdf')
             result = self.cds.send_ses_clinical_escalation_email(state.physician_email, subject, report, mime.as_bytes())
-            state.audit = {'subject': subject, 'html': report, 'sha256': digest, 'hmac_sha256': signature,
-                'canonical_payload': canonical, 'message_id': result['message_id'], 'mode': result['execution_mode'],
-                'timestamp': now(), 'pdf_url': f'/api/audits/{episode_id}.pdf'}
+            state.audit.update({'message_id': result['message_id'], 'mode': result['execution_mode']})
             self.message(state, 'SES', subject, result, destination=state.physician_email)
+            return self.commit(state)
+
+
+    def refresh_handoff(self, state: PatientState) -> bytes:
+        report_text = next((message.text for message in reversed(state.messages)
+            if message.direction == 'inbound' and message.channel == 'WHATSAPP' and message.media_type != 'audio'), 'No patient report recorded')
+        canonical = json.dumps({'episode_id':state.episode_id,'order':state.order,'analysis':state.analysis,
+            'confirmation':state.caregiver_confirmed_at,'patient_report':report_text,
+            'clinical_review':state.clinical_review,'patient_acknowledgement':state.patient_acknowledgement,
+            'follow_up_record':state.follow_up_record,'evidence_source':state.demo_replay},sort_keys=True)
+        digest = hashlib.sha256(canonical.encode()).hexdigest()
+        signature = hmac.new(settings().audit_signing_key.encode(),canonical.encode(),hashlib.sha256).hexdigest()
+        subject = f'Care review handoff | {state.episode_id} | {state.name}'
+        sections = [('Written discharge plan','; '.join(f'{m.name} {m.strength}: {m.schedule}' for m in state.medications)),
+            ('Patient report',report_text), ('Reported red flags','; '.join(state.red_flags) or 'No model-reported flags; this does not establish clinical safety'),('Why review is needed',(state.analysis or {}).get('summary','Pending evidence')),
+            ('Clinical request',state.order['status'] if state.order else 'Not requested'),
+            ('Synthetic clinician decision',state.clinical_review['care_plan'] if state.clinical_review else 'Pending clinician review; no medication authorization'),
+            ('Recorded review notes',state.clinical_review['notes'] if state.clinical_review else 'Not recorded'),
+            ('Patient/caregiver teach-back',state.patient_acknowledgement['teach_back'] if state.patient_acknowledgement else 'Not recorded'),
+            ('Follow-up',state.follow_up_record['note'] if state.follow_up_record else (state.profile.follow_up if state.profile else 'Not recorded')),
+            ('Outcome','Recovery and real-world assessment are not verified by this synthetic demonstration.')]
+        report = '<h1>Care review handoff</h1><p>SYNTHETIC DEMONSTRATION — no prescription or clinical approval is issued by this app.</p>'
+        report += f'<p>{html.escape(state.name)} · {html.escape(state.episode_id)}</p>'
+        report += ''.join(f'<h3>{html.escape(title)}</h3><p>{html.escape(str(value))}</p>' for title,value in sections)
+        report += f'<p>Payload SHA-256: {digest}</p>'
+        pdf = make_pdf('PulseContinuum Care Handoff',['SYNTHETIC DEMONSTRATION',state.name,state.episode_id,
+            'Clinician review required. No new prescription issued.',*[f'{title}: {value}' for title,value in sections],
+            f'SHA-256: {digest}',f'HMAC: {signature}'])
+        save_artifact(f'{state.episode_id}-audit.pdf',pdf,'application/pdf')
+        state.audit = {'subject':subject,'html':report,'sha256':digest,'hmac_sha256':signature,
+            'canonical_payload':canonical,'message_id':None,'mode':'NOT_SENT','timestamp':now(),
+            'pdf_url':f'/api/audits/{state.episode_id}.pdf',
+            'purpose':'Doctor handoff and workflow record; not a prescription or proof of recovery.'}
+        return pdf
+
+    def require_demo_handoff(self, state: PatientState):
+        if not state.is_synthetic or not state.order:
+            raise ValueError('Create a review request for a synthetic episode first.')
+
+    async def clinical_review(self, episode_id: str, decision: str, notes: str) -> PatientState:
+        async with self.lock(episode_id):
+            state = self.memory.get(episode_id)
+            self.require_demo_handoff(state)
+            if state.clinical_review:
+                return state
+            analysis = state.analysis or {}
+            if (state.risk_score >= 70 or state.red_flags) and decision != 'CLINICIAN_CONTACT':
+                raise ValueError('Reported symptom flags require an assessment request in this demonstration.')
+            if decision == 'FOLLOW_DISCHARGE_PLAN' and (state.risk_score >= 70 or state.red_flags
+                or not analysis.get('guardrail_verification',{}).get('dosage_verified')
+                or analysis.get('interactions',{}).get('duplicate_nsaid_risk')):
+                raise ValueError('Unresolved symptoms or medication evidence require assessment/reconciliation, not routine-plan clearance.')
+            plans = {
+                'CLINICIAN_CONTACT':'Request assessment by the treating clinical team. Assessment has not been confirmed. The app makes no medication changes.',
+                'MEDICATION_RECONCILIATION':'Request readable medication labels and reconciliation with the treating clinician. The app authorizes no substitution or dose change.',
+                'FOLLOW_DISCHARGE_PLAN':'Record review of the existing written discharge plan. No medication changes are made by the app; follow-up remains required.'}
+            state.clinical_review = {'decision':decision,'notes':notes,'care_plan':plans[decision],
+                'recorded_at':now(),'recorded_by':'Demonstration clinician role','simulation':True,'medication_changes_made':False}
+            state.order['status'] = 'REVIEW_RECORDED'
+            state.stage = 'Synthetic clinician review recorded; patient acknowledgment pending'
+            self.trace(state,'Clinical Review','Recorded synthetic clinician decision; not a verified clinical consultation',{'decision':decision})
+            self.refresh_handoff(state)
+            return self.commit(state)
+
+    async def acknowledge_plan(self, episode_id: str, actor: str, teach_back: str) -> PatientState:
+        async with self.lock(episode_id):
+            state = self.memory.get(episode_id)
+            self.require_demo_handoff(state)
+            if not state.clinical_review:
+                raise ValueError('Record a clinician review before patient acknowledgment.')
+            if state.patient_acknowledgement:
+                return state
+            state.patient_acknowledgement = {'actor':actor,'teach_back':teach_back,'recorded_at':now(),
+                'simulation':True,'understanding_automatically_verified':False}
+            state.stage = 'Patient/caregiver plan acknowledgment recorded; follow-up pending'
+            self.trace(state,'Care Coordination','Recorded synthetic teach-back; understanding still requires human assessment')
+            self.refresh_handoff(state)
+            return self.commit(state)
+
+    async def record_follow_up(self, episode_id: str, outcome: str, note: str) -> PatientState:
+        async with self.lock(episode_id):
+            state = self.memory.get(episode_id)
+            self.require_demo_handoff(state)
+            if not state.patient_acknowledgement:
+                raise ValueError('Record patient/caregiver acknowledgment before follow-up.')
+            if state.follow_up_record:
+                return state
+            state.follow_up_record = {'outcome':outcome,'note':note,'recorded_at':now(),'simulation':True,
+                'planned_follow_up':state.profile.follow_up if state.profile else '', 'recovery_verified':False}
+            state.order['status'] = 'REASSESSMENT_REQUIRED' if outcome == 'REASSESSMENT_REQUESTED' else 'FOLLOW_UP_RECORDED'
+            state.stage = 'Follow-up recorded; reassessment requested' if outcome == 'REASSESSMENT_REQUESTED' else 'Follow-up contact recorded; recovery outcome not verified'
+            self.trace(state,'Follow-up Coordination',state.stage,{'outcome':outcome})
+            self.refresh_handoff(state)
+            return self.commit(state)
+
+    async def replay_scenario(self, episode_id: str) -> PatientState:
+        from pathlib import Path
+        catalog = json.loads((Path(__file__).parent.parent/'sample_assets/high_risk_scenarios.json').read_text(encoding='utf-8'))
+        if episode_id not in {scenario['episode_id'] for scenario in catalog} or not settings().serverless:
+            raise ValueError('Choose a published hosted synthetic scenario.')
+        async with self.lock(episode_id):
+            try:
+                response = client('s3').get_object(Bucket=settings().assets_bucket,Key=f'scenarios/{episode_id}.json')
+                evidence = json.loads(response['Body'].read(1024*1024))
+                response['Body'].close()
+            except ClientError as exc:
+                raise ValueError('The recorded AWS scenario is not available yet.') from exc
+            state = PatientState.model_validate(evidence['state'])
+            if state.episode_id != episode_id or not state.is_synthetic or not state.analysis or not evidence.get('model_request_id'):
+                raise ValueError('The scenario evidence could not be validated.')
+            state.order = state.audit = state.clinical_review = state.patient_acknowledgement = state.follow_up_record = None
+            state.blackout = False
+            state.caregiver_confirmed_at = state.pending_message_id = None
+            state.delivery_status = 'NOT_SENT'
+            state.analysis['execution_mode'] = 'RECORDED_AWS_RUN'
+            state.demo_replay = {'original_model_request_id':evidence['model_request_id'],
+                'recorded_at':evidence['recorded_at'],'loaded_at':now(),
+                'description':'Replay of recorded AWS inference; no new Bedrock request on this action.'}
+            state.stage = 'Recorded AWS analysis loaded; clinician review request pending'
+            metadata = response['ResponseMetadata']
+            telemetry.emit({'category':'SCENARIO_REPLAY','service':'s3','operation':'get_object',
+                'execution_mode':'LIVE_AWS','request_id':metadata['RequestId'],'http_status':metadata['HTTPStatusCode'],
+                'analysis_mode':'RECORDED_AWS_RUN','episode_id':episode_id})
+            self.trace(state,'Scenario Evidence','Loaded recorded AWS analysis, not a fresh model inference',state.demo_replay)
             return self.commit(state)

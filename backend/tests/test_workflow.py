@@ -37,7 +37,7 @@ def test_full_clinical_loop_and_idempotency(client):
     state = response.json()
     assert state['risk_score'] >= 82
     assert state['analysis']['guardrail_verification']['status'] == 'REVIEW_REQUIRED'
-    assert len(state['rcs_cards']) == 3
+    assert [card['id'] for card in state['rcs_cards']] == ['triage']
     state = client.post('/api/workflow/simulate-deadzone-failover', json={'episode_id': episode}).json()
     sms = [m for m in state['messages'] if m['channel'] == 'SMS']
     assert len(sms) == 2
@@ -244,3 +244,126 @@ def test_hosted_inference_allowance_fails_closed(client, monkeypatch):
     with pytest.raises(RuntimeError, match='allowance exhausted'):
         aws_client.call('bedrock-runtime', 'converse', {}, 'BEDROCK_VISION')
     model.converse.assert_not_called()
+
+
+@pytest.mark.parametrize('outcome,expected_status', [
+    ('CONTACT_RECORDED','FOLLOW_UP_RECORDED'),
+    ('REASSESSMENT_REQUESTED','REASSESSMENT_REQUIRED'),
+])
+def test_complete_synthetic_handoff_has_ordered_review_and_followup(client, outcome, expected_status):
+    episode = 'EP-2026-409'
+    assert client.post('/api/workflow/clinical-review',json={'episode_id':episode,
+        'decision':'CLINICIAN_CONTACT','notes':'Synthetic review requested for the reported symptoms.'}).status_code == 422
+    client.post('/api/workflow/ingest-discharge',data={'episode_id':episode}).raise_for_status()
+    analyzed = client.post('/api/workflow/whatsapp-multimodal',data={'episode_id':episode,
+        'transcript':'Synthetic patient reports fever and dizziness.'}).raise_for_status().json()
+    original_medications = analyzed['medications']
+    assert client.post('/api/workflow/rcs-action',json={'episode_id':episode,'option_id':'generic'}).status_code == 422
+    requested = client.post('/api/workflow/rcs-action',json={'episode_id':episode,'option_id':'triage'}).raise_for_status().json()
+    assert requested['order']['option']['id'] == 'triage'
+    assert client.post('/api/workflow/acknowledge-plan',json={'episode_id':episode,
+        'actor':'CAREGIVER','teach_back':'I will contact the clinical team for review.'}).status_code == 422
+    assert client.post('/api/workflow/follow-up',json={'episode_id':episode,'outcome':outcome,
+        'note':'Synthetic contact was recorded; no recovery outcome is established.'}).status_code == 422
+    for decision in ['FOLLOW_DISCHARGE_PLAN','MEDICATION_RECONCILIATION']:
+        assert client.post('/api/workflow/clinical-review',json={'episode_id':episode,'decision':decision,
+            'notes':'Attempted routine clearance despite unresolved reported symptoms.'}).status_code == 422
+    review = client.post('/api/workflow/clinical-review',json={'episode_id':episode,'decision':'CLINICIAN_CONTACT',
+        'notes':'SYNTHETIC: Reviewed the reported symptoms and requested treating-team assessment. No medicine changes.'}).raise_for_status().json()
+    assert review['clinical_review']['simulation']
+    assert not review['clinical_review']['medication_changes_made']
+    assert review['medications'] == original_medications
+    client.post('/api/workflow/acknowledge-plan',json={'episode_id':episode,'actor':'CAREGIVER',
+        'teach_back':'I understand that assessment is requested and the app has not changed the medication plan.'}).raise_for_status()
+    body = {'episode_id':episode,'outcome':outcome,'note':'SYNTHETIC follow-up contact recorded. Assessment/recovery remains unverified.'}
+    final = client.post('/api/workflow/follow-up',json=body).raise_for_status().json()
+    assert final['order']['status'] == expected_status
+    assert final['follow_up_record']['recovery_verified'] is False
+    assert final['audit']['mode'] == 'NOT_SENT'
+    assert final['audit']['message_id'] is None
+    assert hashlib.sha256(final['audit']['canonical_payload'].encode()).hexdigest() == final['audit']['sha256']
+    assert 'teach-back' in final['audit']['html']
+    repeated = client.post('/api/workflow/follow-up',json=body).raise_for_status().json()
+    assert repeated['follow_up_record'] == final['follow_up_record']
+    assert MemoryGraph().get(episode).clinical_review == final['clinical_review']
+    assert len([event for event in client.get('/api/telemetry').json() if event.get('category')=='SES_V2']) == 1
+    assert client.post('/api/workflow/whatsapp-multimodal',data={'episode_id':episode}).status_code == 422
+    assert client.get(final['audit']['pdf_url']).content.startswith(b'%PDF')
+
+
+def test_negated_fever_and_pill_color_do_not_create_named_drug_evidence(client):
+    from mcp_gateway.pharmacy_erp_mcp import check_interactions
+    client.post('/api/workflow/ingest-discharge').raise_for_status()
+    state = client.post('/api/workflow/whatsapp-multimodal',data={
+        'transcript':'No fever or dizziness. I have a blue tablet and cannot read the label.'}).raise_for_status().json()
+    assert state['risk_score'] == 18
+    assert not state['analysis']['clinical_red_flags']
+    assert not state['analysis']['guardrail_verification']['dosage_verified']
+    assert not check_interactions('I took a blue tablet')['duplicate_nsaid_risk']
+    assert check_interactions('I also took ibuprofen')['duplicate_nsaid_risk']
+
+
+def test_text_only_model_output_cannot_verify_a_readable_label(client, monkeypatch):
+    import json
+
+    import agentcore.vision_forensics as vision
+    response = {'identified_medications':[{'name':'Pantoprazole','strength':'40mg','label_readable':True}],
+        'clinical_red_flags':[],'readmission_risk_score':10,'summary':'Synthetic model output'}
+    monkeypatch.setattr(vision,'call',lambda *args,**kwargs:{'execution_mode':'LIVE_AWS',
+        'response':{'output':{'message':{'content':[{'text':json.dumps(response)}]}}}})
+    result = vision.analyze_patient_submission(None,'Pantoprazole 40mg',{'medications':[{'name':'Pantoprazole','strength':'40mg'}]})
+    assert not result['guardrail_verification']['dosage_verified']
+    assert result['review_required']
+
+
+@pytest.mark.parametrize('episode,transcript,use_caregiver',[
+    ('EP-2026-409','Synthetic post-surgery report: 101.2F fever and dizziness with an unidentified blue tablet.',False),
+    ('EP-2026-425','Synthetic wound report: wet dressing, spreading redness and 101.4F fever; medication strip may be wrong.',False),
+    ('EP-2026-429','Synthetic heart-failure report: breathless at rest, swollen legs, unsure about tablet label and mobile data unavailable.',True),
+])
+def test_three_distinct_high_risk_patient_journeys(client, episode, transcript, use_caregiver):
+    intake=client.post('/api/workflow/ingest-discharge',data={'episode_id':episode}).raise_for_status().json()
+    state=client.post('/api/workflow/whatsapp-multimodal',data={'episode_id':episode,'transcript':transcript}).raise_for_status().json()
+    assert state['risk_score']>=82
+    assert state['analysis']['review_required']
+    assert [card['id'] for card in state['rcs_cards']]==['triage']
+    for option in ['generic','brand']:
+        assert client.post('/api/workflow/rcs-action',json={'episode_id':episode,'option_id':option}).status_code==422
+    if use_caregiver:
+        client.post('/api/workflow/simulate-deadzone-failover',json={'episode_id':episode}).raise_for_status()
+        state=client.post('/api/workflow/caregiver-sms-reply',json={'episode_id':episode,'reply':'2'}).raise_for_status().json()
+    else:
+        state=client.post('/api/workflow/rcs-action',json={'episode_id':episode,'option_id':'triage'}).raise_for_status().json()
+    client.post('/api/workflow/clinical-review',json={'episode_id':episode,'decision':'CLINICIAN_CONTACT',
+        'notes':'SYNTHETIC: Reviewed this pathway and requested treating-team assessment; no medicine change.'}).raise_for_status()
+    client.post('/api/workflow/acknowledge-plan',json={'episode_id':episode,'actor':'CAREGIVER' if use_caregiver else 'PATIENT',
+        'teach_back':'I understand that assessment is requested; the app has not authorized any medication change.'}).raise_for_status()
+    final=client.post('/api/workflow/follow-up',json={'episode_id':episode,
+        'outcome':'REASSESSMENT_REQUESTED' if use_caregiver else 'CONTACT_RECORDED',
+        'note':'SYNTHETIC contact record. Clinical assessment and recovery have not been independently confirmed.'}).raise_for_status().json()
+    assert final['medications']==intake['medications']
+    assert final['risk_score']>=82
+    assert final['follow_up_record']['recovery_verified'] is False
+    assert final['clinical_review']['simulation'] is True
+    assert final['audit']['mode']=='NOT_SENT'
+
+
+def test_recorded_scenario_is_labeled_and_does_not_become_fresh_inference(client,monkeypatch):
+    import json
+    from unittest.mock import Mock
+
+    import agentcore.supervisor as module
+    state=supervisor.memory.get('EP-2026-409')
+    state.ingested=True
+    state.analysis={'execution_mode':'LIVE_AWS','summary':'Recorded synthetic test evidence'}
+    evidence={'state':state.model_dump(),'model_request_id':'stubbed-original-request','recorded_at':'2026-10-26T00:00:00Z'}
+    remote=Mock()
+    remote.get_object.return_value={'Body':io.BytesIO(json.dumps(evidence).encode()),
+        'ResponseMetadata':{'RequestId':'stubbed-s3-request','HTTPStatusCode':200}}
+    monkeypatch.setattr(settings(),'serverless',True)
+    monkeypatch.setattr(module,'client',lambda service:remote)
+    restored=client.post('/api/workflow/replay-scenario',json={'episode_id':state.episode_id}).raise_for_status().json()
+    assert restored['analysis']['execution_mode']=='RECORDED_AWS_RUN'
+    assert restored['order'] is None and restored['clinical_review'] is None
+    assert restored['demo_replay']['original_model_request_id']=='stubbed-original-request'
+    assert client.post('/api/workflow/replay-scenario',json={'episode_id':'EP-2026-412'}).status_code==422

@@ -27,7 +27,13 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from mcp_gateway.pharmacy_erp_mcp import inventory
-from models.schemas import DeliveryEvent, WorkflowRequest
+from models.schemas import (
+    AcknowledgementRequest,
+    ClinicalReviewRequest,
+    DeliveryEvent,
+    FollowUpRequest,
+    WorkflowRequest,
+)
 from telemetry import telemetry
 
 supervisor = Supervisor()
@@ -151,6 +157,28 @@ def pharmacy():
     return inventory()
 
 
+@app.get('/api/scenarios', dependencies=api_auth)
+def scenarios():
+    import json
+
+    from botocore.exceptions import ClientError
+    rows = json.loads((Path(__file__).parent/'sample_assets/high_risk_scenarios.json').read_text(encoding='utf-8'))
+    for row in rows:
+        row['available'] = False
+        if settings().serverless:
+            try:
+                client('s3').head_object(Bucket=settings().assets_bucket,Key=f'scenarios/{row["episode_id"]}.json')
+                row['available'] = True
+            except ClientError:
+                pass
+    return rows
+
+
+@app.post('/api/workflow/replay-scenario', dependencies=api_auth)
+async def replay_scenario(body: WorkflowRequest):
+    return await supervisor.replay_scenario(body.episode_id)
+
+
 @app.get('/api/fixtures/{episode_id}/discharge.pdf', dependencies=api_auth)
 def synthetic_discharge(episode_id: str):
     supervisor.memory.get(episode_id)
@@ -231,6 +259,21 @@ async def sms_reply(body: WorkflowRequest):
 @app.post('/api/workflow/rcs-action', dependencies=api_auth)
 async def rcs_action(body: WorkflowRequest):
     return await supervisor.fulfill(body.episode_id, body.option_id, '1', 'RCS')
+
+
+@app.post('/api/workflow/clinical-review', dependencies=api_auth)
+async def clinical_review(body: ClinicalReviewRequest):
+    return await supervisor.clinical_review(body.episode_id, body.decision, body.notes)
+
+
+@app.post('/api/workflow/acknowledge-plan', dependencies=api_auth)
+async def acknowledge_plan(body: AcknowledgementRequest):
+    return await supervisor.acknowledge_plan(body.episode_id, body.actor, body.teach_back)
+
+
+@app.post('/api/workflow/follow-up', dependencies=api_auth)
+async def follow_up(body: FollowUpRequest):
+    return await supervisor.record_follow_up(body.episode_id, body.outcome, body.note)
 
 
 @app.post('/api/workflow/reset', dependencies=api_auth)
