@@ -69,3 +69,5 @@ Care team is the default with three clinical pages; Admin & engineering contains
 ## Framework security review — 2026-10-26
 
 The production audit identified advisories in the old Next.js 14 dependency and nested PostCSS. Upgraded to Next.js 15.5.28, compatible React 19/types and patched PostCSS with an override covering nested copies. Updated asynchronous request-header and route-parameter APIs. Production build/TypeScript/lint and both public/private access-mode checks passed. `npm audit --omit=dev` now reports zero production findings; this is dependency-audit evidence, not a penetration-test or clinical-security certification. The development toolchain still reports moderate findings and is not represented as vulnerability-free.
+
+Final public proxy regression: 3/3 complete synthetic journeys passed anonymously, no new model requests, admin/care switching passed. Results: submission/public-journey-results.json.

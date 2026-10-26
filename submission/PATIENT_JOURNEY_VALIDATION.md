@@ -48,3 +48,7 @@ The workflow structure is informed by the importance of medication reconciliatio
 The walkthrough also exposed provenance and stale-evidence issues: fresh analysis could inherit the recorded-case marker, and a discharge plan could be replaced beneath an existing analysis. Fresh analysis now clears replay provenance, and replacing an analyzed plan requires an explicit synthetic reset. A dedicated regression test covers both. The care view emphasizes categorical assessment needs instead of displaying an unvalidated model risk number; raw technical evidence remains available.
 
 The caregiver message now requests medication review or clinician assessment rather than “nurse + meds,” and includes a short excerpt of the patient report plus the episode identifier. Follow-up cases requesting reassessment stay visible in the open-handoff queue. Framework/security verification is recorded separately in `production-dependency-audit.json` and the root verification log.
+
+## Final public deployment verification
+
+All three recorded scenarios also passed the complete public Vercel proxy journey without credentials and without new model requests. The first two ended at FOLLOW_UP_RECORDED; the caregiver case ended at REASSESSMENT_REQUIRED. Both public view profiles were reachable. See public-journey-results.json and tools/validate_public_demo.py. One complete handoff was exercised manually in the browser; the other scenario launches and distinct evidence were visually inspected. This does not claim three independent manual browser walkthroughs.
