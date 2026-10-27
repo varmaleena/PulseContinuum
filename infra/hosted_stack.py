@@ -2,10 +2,13 @@
 from aws_cdk import CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_events as events
+from aws_cdk import aws_events_targets as targets
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
+from aws_cdk import aws_lambda_destinations as destinations
 from aws_cdk import aws_logs as logs
 from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_sqs as sqs
 from constructs import Construct
 
 
@@ -47,6 +50,17 @@ class HostedStack(Stack):
         table.grant_read_write_data(function)
         assets.grant_read_write(function)
         bus.grant_put_events_to(function)
+        failed_ticks = sqs.Queue(self, 'CoordinationTickFailures',
+            encryption=sqs.QueueEncryption.SQS_MANAGED, retention_period=Duration.days(1))
+        function.configure_async_invoke(retry_attempts=1, max_event_age=Duration.minutes(5),
+            on_failure=destinations.SqsDestination(failed_ticks))
+        deadline_rule = events.Rule(self, 'CoordinationDeadlines',
+            schedule=events.Schedule.rate(Duration.minutes(5)),
+            description='Bounded synthetic handoff deadlines; no model calls or outbound messages')
+        deadline_rule.add_target(targets.LambdaFunction(function,
+            event=events.RuleTargetInput.from_object({'source':'pulsecontinuum.coordination',
+                'detail-type':'CoordinationTick'}), retry_attempts=2,
+            max_event_age=Duration.minutes(5), dead_letter_queue=failed_ticks))
         function.add_to_role_policy(iam.PolicyStatement(actions=['bedrock:InvokeModel'], resources=[
             f'arn:aws:bedrock:us-east-1:{self.account}:inference-profile/us.amazon.nova-pro-v1:0',
             'arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0']))
@@ -55,3 +69,5 @@ class HostedStack(Stack):
         CfnOutput(self, 'FunctionName', value=function.function_name)
         CfnOutput(self, 'MemoryTable', value=table.table_name)
         CfnOutput(self, 'AssetsBucket', value=assets.bucket_name)
+        CfnOutput(self, 'CoordinationRule', value=deadline_rule.rule_name)
+        CfnOutput(self, 'CoordinationFailureQueue', value=failed_ticks.queue_url)

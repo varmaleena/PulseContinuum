@@ -30,6 +30,7 @@ from mcp_gateway.pharmacy_erp_mcp import inventory
 from models.schemas import (
     AcknowledgementRequest,
     ClinicalReviewRequest,
+    CoordinationCommand,
     DeliveryEvent,
     FollowUpRequest,
     WorkflowRequest,
@@ -71,6 +72,11 @@ def authorize(authorization: str | None = Header(default=None)):
 
 
 api_auth = [Depends(authorize)]
+
+
+@app.post('/api/workflow/coordination-event', dependencies=api_auth)
+async def coordination_event(body: CoordinationCommand):
+    return await supervisor.coordinate(body)
 
 
 @app.exception_handler(KeyError)

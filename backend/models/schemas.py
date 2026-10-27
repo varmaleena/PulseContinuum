@@ -81,6 +81,7 @@ class PatientState(BaseModel):
     patient_acknowledgement: dict[str, Any] | None = None
     follow_up_record: dict[str, Any] | None = None
     demo_replay: dict[str, Any] | None = None
+    coordination: dict[str, Any] | None = None
 
 
 class ClinicalReviewRequest(BaseModel):
@@ -114,3 +115,14 @@ class DeliveryEvent(BaseModel):
     message_id: str
     status: Literal['DELIVERED', 'READ', 'FAILED', 'UNDELIVERED', 'TIMEOUT']
     event_id: str
+
+
+class CoordinationCommand(BaseModel):
+    episode_id: str
+    run_id: str = Field(min_length=8, max_length=80)
+    event_id: str = Field(min_length=8, max_length=100)
+    kind: Literal['ADVANCE_CLOCK', 'DELIVERY_FAILED', 'DELIVERED', 'CAREGIVER_REPLY', 'CONCERN_REPORTED']
+    task_id: str = Field(default='', max_length=100)
+    correlation_id: str = Field(default='', max_length=100)
+    text: str = Field(default='', max_length=1000)
+    advance_seconds: int = Field(default=0, ge=0, le=900)

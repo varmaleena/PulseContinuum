@@ -63,6 +63,32 @@ def test_full_clinical_loop_and_idempotency(client):
     sdk_logs = [e for e in logs if 'execution_mode' in e and e['category'] != 'MCP_PHARMACY']
     assert all(e['request_id'] is None and e['http_status'] is None for e in sdk_logs)
     assert client.post('/api/workflow/caregiver-sms-reply', json={'reply': '9'}).status_code == 422
+
+
+def test_coordination_api_persists_and_rejects_stale_run(client):
+    episode = 'EP-2026-409'
+    client.post('/api/workflow/ingest-discharge', data={'episode_id':episode}).raise_for_status()
+    client.post('/api/workflow/whatsapp-multimodal', data={'episode_id':episode,
+        'transcript':'SYNTHETIC fever and dizziness; please request clinical review.'}).raise_for_status()
+    state = client.post('/api/workflow/rcs-action',json={'episode_id':episode,'option_id':'triage'}).json()
+    c = state['coordination']
+    command = {'episode_id':episode,'run_id':c['run_id'],'event_id':'api-event-001',
+        'kind':'DELIVERY_FAILED','task_id':'patient_contact',
+        'correlation_id':c['tasks']['patient_contact']['correlation_id']}
+    first = client.post('/api/workflow/coordination-event',json=command)
+    assert first.status_code == 200, first.text
+    assert first.json()['coordination']['tasks']['caregiver_contact']['status'] == 'OPEN'
+    assert client.post('/api/workflow/coordination-event',json=command).json()['coordination']['last_event_result']['status'] == 'DUPLICATE_IGNORED'
+    assert len(MemoryGraph().get(episode).coordination['outbox']) == 2
+    bad = {**command,'event_id':'api-event-002','correlation_id':'wrong-episode'}
+    assert client.post('/api/workflow/coordination-event',json=bad).status_code == 422
+    assert len(client.get('/api/patients/'+episode).json()['coordination']['processed_events']) == 1
+    assert client.post('/api/workflow/coordination-event',json={**command,'run_id':'stale-run'}).status_code == 422
+    import asyncio
+    from unittest.mock import patch
+    with patch('agentcore.coordination.utc_seconds', return_value=c['logical_now']+1):
+        asyncio.run(supervisor.coordination_tick())
+    assert client.get('/api/patients/'+episode).json()['coordination']['scheduler_last_checked_at']
     assert client.get('/api/patients/unknown').status_code == 404
 
 

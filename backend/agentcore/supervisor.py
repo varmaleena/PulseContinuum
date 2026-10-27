@@ -7,6 +7,7 @@ import json
 import textwrap
 from email.message import EmailMessage
 
+from agentcore.coordination import apply_event, open_coordination, tick
 from agentcore.memory_graph import MemoryGraph
 from agentcore.vision_forensics import analyze_patient_submission
 from artifact_store import save_artifact
@@ -209,6 +210,7 @@ class Supervisor:
             state.delivery_status = 'ACKNOWLEDGED'
             self.message(state, channel, reply if channel == 'SMS' else f'Request {option_id}', direction='inbound')
             state.order = reserve_order(episode_id, option_id)
+            open_coordination(state)
             state.stage = 'Clinical review requested; clinician decision pending'
             self.trace(state, 'Care Handoff Coordinator', 'Idempotent synthetic review request; no dispensing or consultation performed', state.order)
             pdf = self.refresh_handoff(state)
@@ -232,7 +234,8 @@ class Supervisor:
         canonical = json.dumps({'episode_id':state.episode_id,'order':state.order,'analysis':state.analysis,
             'confirmation':state.caregiver_confirmed_at,'patient_report':report_text,
             'clinical_review':state.clinical_review,'patient_acknowledgement':state.patient_acknowledgement,
-            'follow_up_record':state.follow_up_record,'evidence_source':state.demo_replay},sort_keys=True)
+            'follow_up_record':state.follow_up_record,'evidence_source':state.demo_replay,
+            'coordination':state.coordination},sort_keys=True)
         digest = hashlib.sha256(canonical.encode()).hexdigest()
         signature = hmac.new(settings().audit_signing_key.encode(),canonical.encode(),hashlib.sha256).hexdigest()
         subject = f'Care review handoff | {state.episode_id} | {state.name}'
@@ -243,6 +246,7 @@ class Supervisor:
             ('Recorded review notes',state.clinical_review['notes'] if state.clinical_review else 'Not recorded'),
             ('Patient/caregiver teach-back',state.patient_acknowledgement['teach_back'] if state.patient_acknowledgement else 'Not recorded'),
             ('Follow-up',state.follow_up_record['note'] if state.follow_up_record else (state.profile.follow_up if state.profile else 'Not recorded')),
+            ('Coordination ownership', '; '.join(f'{item["id"]}: {item["owner"]} ({item["status"]})' for item in (state.coordination or {}).get('tasks',{}).values()) or 'Not started'),
             ('Outcome','Recovery and real-world assessment are not verified by this synthetic demonstration.')]
         report = '<h1>Care review handoff</h1><p>SYNTHETIC DEMONSTRATION — no prescription or clinical approval is issued by this app.</p>'
         report += f'<p>{html.escape(state.name)} · {html.escape(state.episode_id)}</p>'
@@ -284,6 +288,8 @@ class Supervisor:
             state.order['status'] = 'REVIEW_RECORDED'
             state.stage = 'Synthetic clinician review recorded; patient acknowledgment pending'
             self.trace(state,'Clinical Review','Recorded synthetic clinician decision; not a verified clinical consultation',{'decision':decision})
+            if state.coordination:
+                tick(state)
             self.refresh_handoff(state)
             return self.commit(state)
 
@@ -299,6 +305,8 @@ class Supervisor:
                 'simulation':True,'understanding_automatically_verified':False}
             state.stage = 'Patient/caregiver plan acknowledgment recorded; follow-up pending'
             self.trace(state,'Care Coordination','Recorded synthetic teach-back; understanding still requires human assessment')
+            if state.coordination:
+                tick(state)
             self.refresh_handoff(state)
             return self.commit(state)
 
@@ -315,6 +323,8 @@ class Supervisor:
             state.order['status'] = 'REASSESSMENT_REQUIRED' if outcome == 'REASSESSMENT_REQUESTED' else 'FOLLOW_UP_RECORDED'
             state.stage = 'Follow-up recorded; reassessment requested' if outcome == 'REASSESSMENT_REQUESTED' else 'Follow-up contact recorded; recovery outcome not verified'
             self.trace(state,'Follow-up Coordination',state.stage,{'outcome':outcome})
+            if state.coordination:
+                tick(state)
             self.refresh_handoff(state)
             return self.commit(state)
 
@@ -334,6 +344,7 @@ class Supervisor:
             if state.episode_id != episode_id or not state.is_synthetic or not state.analysis or not evidence.get('model_request_id'):
                 raise ValueError('The scenario evidence could not be validated.')
             state.order = state.audit = state.clinical_review = state.patient_acknowledgement = state.follow_up_record = None
+            state.coordination = None
             state.blackout = False
             state.caregiver_confirmed_at = state.pending_message_id = None
             state.delivery_status = 'NOT_SENT'
@@ -348,3 +359,32 @@ class Supervisor:
                 'analysis_mode':'RECORDED_AWS_RUN','episode_id':episode_id})
             self.trace(state,'Scenario Evidence','Loaded recorded AWS analysis, not a fresh model inference',state.demo_replay)
             return self.commit(state)
+
+    async def coordinate(self, command) -> PatientState:
+        async with self.lock(command.episode_id):
+            state = self.memory.get(command.episode_id)
+            self.require_demo_handoff(state)
+            if not state.coordination:
+                raise ValueError('Replay and open a new handoff to use coordination events.')
+            apply_event(state, command)
+            self.trace(state, 'Handoff Policy Controller', 'Processed correlated synthetic coordination event',
+                state.coordination['last_event_result'])
+            self.refresh_handoff(state)
+            return self.commit(state)
+
+    async def coordination_tick(self):
+        changed = []
+        for episode_id in list(self.memory.states):
+            async with self.lock(episode_id):
+                state = self.memory.get(episode_id)
+                if not state.is_synthetic or not state.coordination or not state.order:
+                    continue
+                if not any(item['status'] == 'OPEN' for item in state.coordination['tasks'].values()):
+                    continue
+                if tick(state):
+                    state.coordination['scheduler_last_checked_at'] = now()
+                    self.trace(state, 'Handoff Policy Controller', 'AWS scheduled deadline check; no model call or outbound send')
+                    self.refresh_handoff(state)
+                    self.commit(state)
+                    changed.append(episode_id)
+        return {'checked':len(self.memory.states), 'updated':changed, 'outbound_sent':False}

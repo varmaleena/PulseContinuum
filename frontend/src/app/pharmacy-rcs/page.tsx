@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {CoordinationPanel} from '@/components/CoordinationPanel';
 import {useEffect,useState} from 'react';
 import {ClipboardCheck,MessageCircle,CalendarCheck,Mail,Download,ArrowRight,Check,ShieldCheck} from 'lucide-react';
 import {ClinicalReview,evidenceSummary,time,workflow} from '@/lib/api';
@@ -14,12 +15,13 @@ export default function ReviewPage() {
   if (!patient) return <Empty>Loading the care review workspace…</Empty>;
   const urgent = patient.risk_score >= 70 || !!patient.analysis?.clinical_red_flags.length;
   const uncertain = !patient.analysis?.guardrail_verification.dosage_verified || !!patient.analysis?.interactions.duplicate_nsaid_risk;
-  const queue = patients.filter(item=>item.analysis && (!item.follow_up_record || item.follow_up_record.outcome==='REASSESSMENT_REQUESTED'));
+  const queue = patients.filter(item=>item.analysis && (!item.follow_up_record || item.follow_up_record.outcome==='REASSESSMENT_REQUESTED' || item.coordination?.concern_open || Object.values(item.coordination?.tasks || {}).some(t=>['OPEN','ESCALATED','MANUAL_INTERVENTION'].includes(t.status))));
   const steps = [{label:'Review requested',done:!!patient.order},{label:'Clinician decision',done:!!patient.clinical_review},{label:'Plan acknowledged',done:!!patient.patient_acknowledgement},{label:'Follow-up recorded',done:!!patient.follow_up_record}];
   return <><Heading eyebrow="CLOSE THE CARE HANDOFF" title="A review request is the beginning." description="Record the clinician’s next step, the patient’s understanding and the follow-up. An email alone does not complete care."/>
     <div className="journey-explanation"><ShieldCheck size={19}/><div><strong>No medicine is prescribed or dispensed here.</strong><p>These are synthetic role-play records. The AI prepares evidence for review; it cannot authorize a medication change or establish recovery.</p></div></div>
     {queue.length>0 && <section className="review-queue" aria-label="Open review queue"><small>OPEN HANDOFFS · {queue.length}</small><div>{queue.map(item=><button key={item.episode_id} className={selected===item.episode_id?'selected':''} onClick={()=>select(item.episode_id)}>{item.name}<Badge tone={item.risk_score>=70?'danger':'sms'}>{item.follow_up_record?.outcome==='REASSESSMENT_REQUESTED'?'Reassessment needed':item.clinical_review?'Follow-up pending':'Review pending'}</Badge></button>)}</div></section>}
     {patient.follow_up_record?.outcome==='REASSESSMENT_REQUESTED' && <div className="journey-explanation"><ShieldCheck size={19}/><div><strong>Concern remains — reassessment is still required.</strong><p>Recording a follow-up did not close this clinical concern. The treating team still owns assessment; the app has not verified recovery.</p></div></div>}
+    <CoordinationPanel patient={patient}/>
     <nav className="handoff-progress" aria-label="Handoff progress">{steps.map((step,index)=><div className={step.done?'done':''} key={step.label}><span>{step.done?<Check size={15}/>:index+1}</span><strong>{step.label}</strong></div>)}</nav>
     <div className="two-columns review-layout"><section className="review-forms">
       {!patient.order && <div className="card review-panel"><h2>First, open a clinical review request</h2><p>{patient.analysis?.next_action || 'Start with the discharge plan and patient report in the workbench.'}</p><button className="button primary" disabled={busy || !patient.analysis} onClick={()=>void run(()=>workflow('rcs-action',selected,{option_id:'triage'}))}>Request clinician review<ArrowRight size={15}/></button><Link className="text-link" href="/workbench">Return to patient evidence</Link></div>}
