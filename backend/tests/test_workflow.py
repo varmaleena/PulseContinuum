@@ -89,6 +89,26 @@ def test_coordination_api_persists_and_rejects_stale_run(client):
     with patch('agentcore.coordination.utc_seconds', return_value=c['logical_now']+1):
         asyncio.run(supervisor.coordination_tick())
     assert client.get('/api/patients/'+episode).json()['coordination']['scheduler_last_checked_at']
+
+
+def test_failed_state_commit_does_not_replace_the_published_audit(client):
+    from unittest.mock import patch
+    episode = 'EP-2026-409'
+    client.post('/api/workflow/ingest-discharge', data={'episode_id':episode}).raise_for_status()
+    client.post('/api/workflow/whatsapp-multimodal', data={'episode_id':episode,
+        'transcript':'SYNTHETIC fever and dizziness require review.'}).raise_for_status()
+    state = client.post('/api/workflow/rcs-action',json={'episode_id':episode,'option_id':'triage'}).json()
+    original_pdf = client.get(state['audit']['pdf_url']).content
+    c = state['coordination']
+    command = {'episode_id':episode,'run_id':c['run_id'],'event_id':'failed-commit-001',
+        'kind':'ADVANCE_CLOCK','advance_seconds':360}
+    with patch.object(supervisor.memory,'save',side_effect=RuntimeError('Synthetic persistence failure')):
+        assert client.post('/api/workflow/coordination-event',json=command).status_code == 502
+    restored = client.get('/api/patients/'+episode).json()
+    assert restored['audit']['artifact_key'] == state['audit']['artifact_key']
+    assert client.get(state['audit']['pdf_url']).content == original_pdf
+    assert 'failed-commit-001' not in restored['coordination']['processed_events']
+    assert client.post('/api/workflow/coordination-event',json=command).status_code == 200
     assert client.get('/api/patients/unknown').status_code == 404
 
 

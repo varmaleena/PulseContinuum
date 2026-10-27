@@ -15,7 +15,7 @@ export interface Coordination {
 }
 type Command = {episode_id: string; run_id: string; event_id: string; kind: string; task_id?: string; correlation_id?: string; text?: string; advance_seconds?: number};
 export function CoordinationPanel({patient}:{patient: Patient}) {
-  const {run,busy} = usePulse();
+  const {run,busy,pollEvents} = usePulse();
   const [previous,setPrevious] = useState<Command>();
   const c = patient.coordination;
   if (!c) return <section className="card coordination-panel"><h2><GitBranch size={19}/> Accountable handoff coordination</h2><p>Request clinician review to start owned tasks, deadline monitoring and correlated contact tracking.</p></section>;
@@ -31,7 +31,7 @@ export function CoordinationPanel({patient}:{patient: Patient}) {
   return <section className="card coordination-panel" aria-label="Accountable coordination">
     <div className="section-head"><div><h2><GitBranch size={19}/> The handoff keeps moving</h2><p>One episode, explicit owners, visible unresolved work.</p></div><Badge tone={c.concern_open?'danger':'violet'}>{c.concern_open?'Concern remains open':'Bounded policy controller'}</Badge></div>
     <div className="coordination-boundary"><ShieldCheck size={16}/><p>Synthetic operational timers demonstrate coordination, not medical response deadlines. Contact intents and injected receipts are previews; no email or phone message is sent. Urgent real symptoms must never wait for this demo timer.</p></div>
-    <div className="coordination-clock"><span><Clock3 size={16}/> Demo clock <strong>{stamp(c.logical_now)}</strong> · advanced {c.clock_offset_seconds/60} min</span><small>AWS checks every 5 minutes, even with the browser closed.{c.scheduler_last_checked_at && ` Last worker check: ${new Date(c.scheduler_last_checked_at).toLocaleTimeString()}`}</small></div>
+    <div className="coordination-clock"><span><Clock3 size={16}/> Demo clock <strong>{stamp(c.logical_now)}</strong> · advanced {c.clock_offset_seconds/60} min</span><small>{pollEvents?'Hosted AWS checks every 5 minutes, even with the browser closed.':'Local demo: advance the clock to evaluate deadlines; the hosted version also has an AWS worker.'}{c.scheduler_last_checked_at && ` Last worker check: ${new Date(c.scheduler_last_checked_at).toLocaleTimeString()}`}</small></div>
     <div className="coordination-actions"><button className="button" disabled={busy} onClick={()=>command('ADVANCE_CLOCK',{advance_seconds:180})}>Advance 3 demo minutes</button><button className="button" disabled={busy} onClick={()=>command('ADVANCE_CLOCK',{advance_seconds:360})}>Advance 6 demo minutes</button>
       {contact && <button className="button" disabled={busy} onClick={()=>command('DELIVERY_FAILED',correlate(contact))}>Inject {contact.id==='patient_contact'?'patient':'caregiver'} delivery failure</button>}
       {caregiver && <button className="button" disabled={busy} onClick={()=>command('CONCERN_REPORTED',{...correlate(caregiver),text:'SYNTHETIC caregiver reply: the concern is still present. Please keep the treating-team assessment request open.'})}>Inject caregiver concern</button>}

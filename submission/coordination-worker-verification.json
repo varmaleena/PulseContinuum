@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-10-27T11:17:45.922484+00:00",
+  "schedule": "rate(5 minutes)",
+  "rule_enabled": true,
+  "async_retries": 1,
+  "failure_destination_configured": true,
+  "outbound_channels_enabled": false,
+  "daily_model_cap": 10,
+  "scheduled_invocations": [
+    {
+      "timestamp": 1793099643139,
+      "result": {
+        "checked": 6,
+        "updated": [
+          "EP-2026-409",
+          "EP-2026-425",
+          "EP-2026-429"
+        ],
+        "outbound_sent": false
+      }
+    }
+  ],
+  "spoofed_http_tick_status": 401,
+  "note": "This verifier reads logs only; it does not invoke the worker or mutate an episode."
+}

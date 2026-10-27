@@ -358,7 +358,7 @@ def audit_pdf(episode_id: str):
     state = supervisor.memory.get(episode_id)
     if not state.audit:
         raise HTTPException(404, 'Generate an audit by confirming a care request')
-    path = load_artifact(f'{episode_id}-audit.pdf')
+    path = load_artifact(state.audit.get('artifact_key') or f'{episode_id}-audit.pdf')
     if path is None:
         raise HTTPException(404, 'Generate an audit by confirming a care request')
     return FileResponse(path, media_type='application/pdf', filename=f'{episode_id}-audit.pdf')

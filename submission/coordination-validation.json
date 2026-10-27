@@ -1,0 +1,82 @@
+{
+  "tested_at": "2026-10-27T11:11:07.106524+00:00",
+  "url": "https://pulsecontinuum.vercel.app",
+  "new_model_requests": 0,
+  "outbound_sent": false,
+  "cases": [
+    {
+      "episode_id": "EP-2026-409",
+      "passed": true,
+      "checks": [
+        "review_has_owner",
+        "contradictory_receipt_does_not_regress",
+        "delivered_but_unacknowledged_contact_times_out",
+        "cross_episode_correlation_rejected",
+        "caregiver_concern_attached_to_existing_case",
+        "duplicate_reply_does_not_create_another_task",
+        "event_id_payload_conflict_rejected",
+        "old_run_event_rejected",
+        "unanswered_review_escalates_owner",
+        "events_do_not_fabricate_human_care",
+        "written_medications_unchanged",
+        "contact_intents_are_not_delivery_claims",
+        "audit_not_emailed",
+        "updated_handoff_pdf_available",
+        "ledger_persisted_across_requests"
+      ],
+      "run_id": "202b0ede2b404837b17fd39b4d509bbd",
+      "policy": "synthetic-handoff-v1",
+      "clock_offset_seconds": 540
+    },
+    {
+      "episode_id": "EP-2026-425",
+      "passed": true,
+      "checks": [
+        "review_has_owner",
+        "duplicate_failure_has_one_fallback",
+        "two_failed_paths_require_manual_contact",
+        "retry_limit_routes_to_duty_supervisor",
+        "cross_episode_correlation_rejected",
+        "caregiver_concern_attached_to_existing_case",
+        "duplicate_reply_does_not_create_another_task",
+        "event_id_payload_conflict_rejected",
+        "old_run_event_rejected",
+        "unanswered_review_escalates_owner",
+        "events_do_not_fabricate_human_care",
+        "written_medications_unchanged",
+        "contact_intents_are_not_delivery_claims",
+        "audit_not_emailed",
+        "updated_handoff_pdf_available",
+        "ledger_persisted_across_requests",
+        "late_reply_reconciles_manual_contact"
+      ],
+      "run_id": "a2022cae91f54bc9a3a3b91fe4019f29",
+      "policy": "synthetic-handoff-v1",
+      "clock_offset_seconds": 1080
+    },
+    {
+      "episode_id": "EP-2026-429",
+      "passed": true,
+      "checks": [
+        "review_has_owner",
+        "duplicate_failure_has_one_fallback",
+        "cross_episode_correlation_rejected",
+        "caregiver_concern_attached_to_existing_case",
+        "duplicate_reply_does_not_create_another_task",
+        "event_id_payload_conflict_rejected",
+        "old_run_event_rejected",
+        "unanswered_review_escalates_owner",
+        "events_do_not_fabricate_human_care",
+        "written_medications_unchanged",
+        "contact_intents_are_not_delivery_claims",
+        "audit_not_emailed",
+        "updated_handoff_pdf_available",
+        "ledger_persisted_across_requests"
+      ],
+      "run_id": "e8d725c805184893b2c1ef8fe864db62",
+      "policy": "synthetic-handoff-v1",
+      "clock_offset_seconds": 360
+    }
+  ],
+  "checks_passed": 46
+}

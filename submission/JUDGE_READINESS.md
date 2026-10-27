@@ -50,3 +50,9 @@ Managed AgentCore is not mandatory; the event FAQ accepts custom agents on AWS L
 ## Recommendation
 
 Treat this as a promising, submission-capable prototype after the workflow fixes and three-case validation, not as a demonstrated winner. Prioritize a clear three-minute clinical handoff story, candid CDS evidence and completion of the missing submission assets. Do not add more agent labels or unrelated features to compensate for an unclear outcome.
+
+## Coordination-depth update — 27 October 2026
+
+The product now goes beyond manually advancing a handoff: the deployed deterministic controller assigns owners, tracks deadlines, creates caregiver contact intents after failures/timeouts, escalates unanswered review and retains manual-intervention work after bounded retries. Correlated replies, payload-fingerprinted duplicate suppression and late-receipt reconciliation persist with the episode. The public accelerated clock exercises the same reducer as a five-minute EventBridge/Lambda worker.
+
+This strengthens operational and technical depth. It does not remove the live-CDS limitation: the new outbox contains preview intents and is not a real provider dispatch loop. Synthetic role ownership is not authenticated hospital staffing, and these tests establish neither clinical benefit nor a winning probability. See docs/COORDINATION.md for scope and evidence.

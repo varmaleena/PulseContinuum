@@ -71,3 +71,13 @@ Care team is the default with three clinical pages; Admin & engineering contains
 The production audit identified advisories in the old Next.js 14 dependency and nested PostCSS. Upgraded to Next.js 15.5.28, compatible React 19/types and patched PostCSS with an override covering nested copies. Updated asynchronous request-header and route-parameter APIs. Production build/TypeScript/lint and both public/private access-mode checks passed. `npm audit --omit=dev` now reports zero production findings; this is dependency-audit evidence, not a penetration-test or clinical-security certification. The development toolchain still reports moderate findings and is not represented as vulnerability-free.
 
 Final public proxy regression: 3/3 complete synthetic journeys passed anonymously, no new model requests, admin/care switching passed. Results: submission/public-journey-results.json.
+
+## Accountable coordination — 2026-10-27
+
+- Backend: 37 regression tests passed, including 12 adversarial reducer tests and API persistence/scheduler integration. Ruff passes. Frontend production build/TypeScript/lint and public/protected access regression checks pass.
+- Added owned tasks, operational deadlines, patient-to-caregiver adaptation, on-call escalation, bounded retry/manual intervention, correlation IDs, durable event fingerprints, stale-run rejection and late-receipt reconciliation. The controller is deterministic policy; no claim of autonomous medical judgment is made.
+- All three public coordination paths passed 46 engineering assertions without fresh model calls or outbound sends. Evidence: submission/coordination-validation.json.
+- The hosted CDK stack reached UPDATE_COMPLETE. EventBridge is enabled at rate(5 minutes), with bounded retries and a one-day failure queue. Read-only CloudWatch verification observed an actual scheduled worker invocation updating the configured cases, without invoking the worker itself. Evidence: submission/coordination-worker-verification.json.
+- Contact outbox entries remain PREVIEW_ONLY. This is durable internal coordination, not a live two-way provider integration. Synthetic owners are role labels, not actual hospital staff accounts. Timers are demonstration policy, not clinical response deadlines.
+
+Audit persistence failure injection also passed: content-versioned PDF artifacts keep the previously committed packet available when a subsequent state save fails; retry then publishes the new packet.

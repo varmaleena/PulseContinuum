@@ -255,10 +255,11 @@ class Supervisor:
         pdf = make_pdf('PulseContinuum Care Handoff',['SYNTHETIC DEMONSTRATION',state.name,state.episode_id,
             'Clinician review required. No new prescription issued.',*[f'{title}: {value}' for title,value in sections],
             f'SHA-256: {digest}',f'HMAC: {signature}'])
-        save_artifact(f'{state.episode_id}-audit.pdf',pdf,'application/pdf')
+        artifact_key = f'{state.episode_id}-audit-{digest[:20]}.pdf'
+        save_artifact(artifact_key,pdf,'application/pdf')
         state.audit = {'subject':subject,'html':report,'sha256':digest,'hmac_sha256':signature,
             'canonical_payload':canonical,'message_id':None,'mode':'NOT_SENT','timestamp':now(),
-            'pdf_url':f'/api/audits/{state.episode_id}.pdf',
+            'pdf_url':f'/api/audits/{state.episode_id}.pdf','artifact_key':artifact_key,
             'purpose':'Doctor handoff and workflow record; not a prescription or proof of recovery.'}
         return pdf
 

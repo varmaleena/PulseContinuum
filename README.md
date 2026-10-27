@@ -30,6 +30,14 @@ This is a working AWS-connected hackathon prototype using **synthetic records on
 - **The product serves two audiences deliberately.** Care teams see recovery work. Administrators inspect orchestration and AWS execution evidence in a separate profile.
 - **Cloud claims are inspectable.** Real service request metadata, explicit execution modes, and an approved SES acceptance distinguish implemented AWS behavior from simulated adapters.
 
+## The handoff continues after the first request
+
+The AI evidence review feeds a bounded operational controller: **owned review → patient contact → caregiver fallback → on-call escalation → manual intervention**. A real EventBridge schedule evaluates persistent deadlines every five minutes, including with the browser closed. The public demo accelerates the same policy clock and injects clearly labeled synthetic receipts/replies.
+
+On **Review & follow-up**, inject a patient delivery failure, attach a caregiver concern, replay the same event and advance six demo minutes. Inspect why the contact path and owner changed. Duplicate events do not duplicate tasks; a contact record never establishes recovery. Contact intents are previews, not live phone sends.
+
+[Policy, failure handling and architecture](docs/COORDINATION.md) · [Public three-case coordination evidence](submission/coordination-validation.json)
+
 ## Two profiles, one episode
 
 | Profile | Designed for | Workspace |
