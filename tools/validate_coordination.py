@@ -75,6 +75,7 @@ def main():
             check(state['medications']==original_meds,'written_medications_unchanged')
             check(all(item['status']=='PREVIEW_ONLY' for item in c['outbox']),'contact_intents_are_not_delivery_claims')
             check(state['audit']['mode']=='NOT_SENT','audit_not_emailed')
+            check(state['audit'].get('artifact_key')==f'{episode}-audit-{state["audit"]["sha256"][:20]}.pdf','audit_artifact_is_content_versioned')
             check(api.get(state['audit']['pdf_url']).raise_for_status().content.startswith(b'%PDF'),'updated_handoff_pdf_available')
             # A separate read verifies the event ledger and ownership survived persistence.
             restored = api.get('/api/patients/'+episode).raise_for_status().json()['coordination']

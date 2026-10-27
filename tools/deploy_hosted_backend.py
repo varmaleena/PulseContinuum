@@ -1,10 +1,12 @@
 """Deploy reviewed CDK backend with secret parameters and persist only private local outputs."""
 import hashlib
+import io
 import json
 import os
 import secrets
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 import boto3
@@ -32,8 +34,13 @@ def main():
     outputs = {row['OutputKey']:row['OutputValue'] for row in stack['Outputs']}
     bucket = outputs['AssetsBucket']
     package = ROOT / 'dist/backend-lambda.zip'
-    key = 'hosting/code/'+hashlib.sha256(package.read_bytes()).hexdigest()+'.zip'
-    session.client('s3').upload_file(str(package), bucket, key)
+    payload = package.read_bytes()
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        if archive.testzip() is not None:
+            raise RuntimeError('Lambda archive integrity check failed; rebuild before deployment')
+    key = 'hosting/code/'+hashlib.sha256(payload).hexdigest()+'.zip'
+    # Freeze the exact bytes before upload: a concurrent build cannot alter them.
+    session.client('s3').upload_fileobj(io.BytesIO(payload), bucket, key)
     env = {**os.environ, 'PULSE_CODE_BUCKET':bucket, 'PULSE_CODE_KEY':key, 'PULSE_ACCOUNT':account,
            'CDK_OUTDIR':str(ROOT / 'tmp/hosted-cdk'), 'NODE_OPTIONS':'--max-old-space-size=512'}
     try:

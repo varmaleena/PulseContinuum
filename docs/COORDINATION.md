@@ -58,6 +58,6 @@ All contact intents are `PREVIEW_ONLY`; receipts and caregiver responses injecte
 
 ## Verification and limits
 
-See `submission/coordination-validation.json` for three public failure paths and `submission/coordination-worker-verification.json` for read-only AWS scheduler evidence. The verifier does not invoke the worker itself. The backend suite includes API persistence and adversarial policy tests.
+See `submission/coordination-validation.json` for three public failure paths and `submission/coordination-worker-verification.json` for read-only AWS scheduler evidence. The verifier does not invoke the worker itself. All three public coordination paths passed 49 assertions. The backend suite passes 37 tests, including API persistence, adversarial policy tests and a failed state-save test that preserves the previously published content-versioned audit PDF. The deployed archive checksum is verified against the local build.
 
 There is no hospital SSO, clinical validation, EHR integration or measured readmission benefit. Synthetic owners are named roles, not authenticated clinicians or real staff assignments. The scheduler scans only the six configured fixture episodes; production scale requires an indexed due-work queue, tenant isolation, operational alarms and workload-specific service objectives.

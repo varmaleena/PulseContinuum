@@ -1,5 +1,5 @@
 {
-  "tested_at": "2026-10-27T11:11:07.106524+00:00",
+  "tested_at": "2026-10-27T11:29:01.369684+00:00",
   "url": "https://pulsecontinuum.vercel.app",
   "new_model_requests": 0,
   "outbound_sent": false,
@@ -21,10 +21,11 @@
         "written_medications_unchanged",
         "contact_intents_are_not_delivery_claims",
         "audit_not_emailed",
+        "audit_artifact_is_content_versioned",
         "updated_handoff_pdf_available",
         "ledger_persisted_across_requests"
       ],
-      "run_id": "202b0ede2b404837b17fd39b4d509bbd",
+      "run_id": "f5f9a02a7ce4448dbe66209fc07f6b47",
       "policy": "synthetic-handoff-v1",
       "clock_offset_seconds": 540
     },
@@ -46,11 +47,12 @@
         "written_medications_unchanged",
         "contact_intents_are_not_delivery_claims",
         "audit_not_emailed",
+        "audit_artifact_is_content_versioned",
         "updated_handoff_pdf_available",
         "ledger_persisted_across_requests",
         "late_reply_reconciles_manual_contact"
       ],
-      "run_id": "a2022cae91f54bc9a3a3b91fe4019f29",
+      "run_id": "61dd1e149cb2426e891c699fa98c2a30",
       "policy": "synthetic-handoff-v1",
       "clock_offset_seconds": 1080
     },
@@ -70,13 +72,14 @@
         "written_medications_unchanged",
         "contact_intents_are_not_delivery_claims",
         "audit_not_emailed",
+        "audit_artifact_is_content_versioned",
         "updated_handoff_pdf_available",
         "ledger_persisted_across_requests"
       ],
-      "run_id": "e8d725c805184893b2c1ef8fe864db62",
+      "run_id": "2a244e23f2b74a4295d432b178fcf313",
       "policy": "synthetic-handoff-v1",
       "clock_offset_seconds": 360
     }
   ],
-  "checks_passed": 46
+  "checks_passed": 49
 }

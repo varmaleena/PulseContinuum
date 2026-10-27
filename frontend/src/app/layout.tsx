@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './clinical.css';
+import './coordination.css';
 import Sidebar from '@/components/Sidebar';
 import TopStatusBar from '@/components/TopStatusBar';
 import {Provider} from '@/components/Provider';

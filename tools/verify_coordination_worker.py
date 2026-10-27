@@ -1,4 +1,6 @@
 """Read-only proof that EventBridge invoked the hosted deadline worker without a browser."""
+import base64
+import hashlib
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -17,6 +19,8 @@ def main():
     rule = session.client('events',config=bounded).describe_rule(Name=private['CoordinationRule'])
     function = session.client('lambda',config=bounded)
     config = function.get_function_configuration(FunctionName=private['FunctionName'])
+    package_hash = base64.b64encode(hashlib.sha256((ROOT/'dist/backend-lambda.zip').read_bytes()).digest()).decode()
+    assert config['CodeSha256'] == package_hash, 'Deployed Lambda must match the complete built package'
     retries = function.get_function_event_invoke_config(FunctionName=private['FunctionName'])
     assert rule['State']=='ENABLED' and rule['ScheduleExpression']=='rate(5 minutes)'
     assert retries['MaximumRetryAttempts']==1 and retries['DestinationConfig']['OnFailure']['Destination']
@@ -41,6 +45,7 @@ def main():
     proof = {'checked_at':end.isoformat(),'schedule':rule['ScheduleExpression'],'rule_enabled':True,
         'async_retries':retries['MaximumRetryAttempts'],'failure_destination_configured':True,
         'outbound_channels_enabled':False,'daily_model_cap':10,'scheduled_invocations':ticks,
+        'deployed_package_matches_local':True,
         'spoofed_http_tick_status':spoofed.status_code,
         'note':'This verifier reads logs only; it does not invoke the worker or mutate an episode.'}
     (ROOT/'submission/coordination-worker-verification.json').write_text(json.dumps(proof,indent=2)+'\n',encoding='utf-8')

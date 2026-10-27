@@ -76,8 +76,10 @@ Final public proxy regression: 3/3 complete synthetic journeys passed anonymousl
 
 - Backend: 37 regression tests passed, including 12 adversarial reducer tests and API persistence/scheduler integration. Ruff passes. Frontend production build/TypeScript/lint and public/protected access regression checks pass.
 - Added owned tasks, operational deadlines, patient-to-caregiver adaptation, on-call escalation, bounded retry/manual intervention, correlation IDs, durable event fingerprints, stale-run rejection and late-receipt reconciliation. The controller is deterministic policy; no claim of autonomous medical judgment is made.
-- All three public coordination paths passed 46 engineering assertions without fresh model calls or outbound sends. Evidence: submission/coordination-validation.json.
+- All three public coordination paths passed 49 engineering assertions without fresh model calls or outbound sends. Evidence: submission/coordination-validation.json.
 - The hosted CDK stack reached UPDATE_COMPLETE. EventBridge is enabled at rate(5 minutes), with bounded retries and a one-day failure queue. Read-only CloudWatch verification observed an actual scheduled worker invocation updating the configured cases, without invoking the worker itself. Evidence: submission/coordination-worker-verification.json.
 - Contact outbox entries remain PREVIEW_ONLY. This is durable internal coordination, not a live two-way provider integration. Synthetic owners are role labels, not actual hospital staff accounts. Timers are demonstration policy, not clinical response deadlines.
 
 Audit persistence failure injection also passed: content-versioned PDF artifacts keep the previously committed packet available when a subsequent state save fails; retry then publishes the new packet.
+
+Final deployed Lambda checksum matches the completed local package. Packaging now publishes archives atomically, and deployment validates and freezes archive bytes before upload. An earlier incomplete-archive update rolled back safely; the subsequent update reached UPDATE_COMPLETE. Unauthenticated HTTP attempts to impersonate an internal scheduler event return 401.

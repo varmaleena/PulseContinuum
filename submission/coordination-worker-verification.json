@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-27T11:17:45.922484+00:00",
+  "checked_at": "2026-10-27T11:28:58.489082+00:00",
   "schedule": "rate(5 minutes)",
   "rule_enabled": true,
   "async_retries": 1,
@@ -18,8 +18,29 @@
         ],
         "outbound_sent": false
       }
+    },
+    {
+      "timestamp": 1793099942842,
+      "result": {
+        "checked": 6,
+        "updated": [
+          "EP-2026-429"
+        ],
+        "outbound_sent": false
+      }
+    },
+    {
+      "timestamp": 1793100242964,
+      "result": {
+        "checked": 6,
+        "updated": [
+          "EP-2026-429"
+        ],
+        "outbound_sent": false
+      }
     }
   ],
+  "deployed_package_matches_local": true,
   "spoofed_http_tick_status": 401,
   "note": "This verifier reads logs only; it does not invoke the worker or mutate an episode."
 }
