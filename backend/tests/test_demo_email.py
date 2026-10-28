@@ -93,3 +93,13 @@ def test_missing_attachment_does_not_consume_allowance(prepared,monkeypatch):
         demo_email.send_packet(state)
     db.transact_write_items.assert_not_called()
     ses.send_email.assert_not_called()
+
+
+@pytest.mark.parametrize('http_status,expected',[(403,'REJECTED_BY_SES'),(500,'OUTCOME_UNKNOWN')])
+def test_definitive_rejection_is_distinguished_from_uncertain_server_error(prepared,http_status,expected):
+    state,db,ses = prepared
+    ses.send_email.side_effect = ClientError({'Error':{'Code':'AccessDeniedException' if http_status==403 else 'InternalServiceError'},
+        'ResponseMetadata':{'HTTPStatusCode':http_status}},'SendEmail')
+    result = demo_email.send_packet(state)
+    assert result['status']==expected and result['error_code']
+    ses.send_email.assert_called_once()

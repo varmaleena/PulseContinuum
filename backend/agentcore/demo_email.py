@@ -64,9 +64,20 @@ def send_packet(state):
             'episode_id':state.episode_id,'message_id':receipt['message_id'],'request_id':receipt['request_id'],
             'http_status':receipt['http_status'],'request':{'destination':'verified-demo-inbox',
                 'packet_sha256':state.audit['sha256']},'response':{'MessageId':receipt['message_id']}})
-    except Exception:
+    except Exception as exc:
         # Never infer rejection from a network timeout. An accepted send may have lost its response.
         receipt.update(status='OUTCOME_UNKNOWN',note='Sending failed or its outcome is uncertain. No automatic resend; inspect AWS evidence.')
+        if isinstance(exc,ClientError):
+            code = exc.response.get('Error',{}).get('Code','Unknown')
+            receipt['error_code'] = code
+            if 400 <= exc.response.get('ResponseMetadata',{}).get('HTTPStatusCode',0) < 500:
+                receipt['status'] = 'REJECTED_BY_SES'
+                receipt['note'] = 'AWS rejected this attempt. No automatic retry; inspect the recorded AWS error code.'
+        else:
+            receipt['error_code'] = type(exc).__name__
+        telemetry.emit({'category':'SES_V2','service':'sesv2','operation':'send_email',
+            'execution_mode':'AWS_ERROR','episode_id':state.episode_id,
+            'error':receipt['error_code'],'request':{'destination':'verified-demo-inbox'}})
         db.update_item(TableName=cfg.memory_table,Key=key,UpdateExpression='SET #s = :s',
             ExpressionAttributeNames={'#s':'State'},ExpressionAttributeValues={':s':{'S':json.dumps(receipt)}})
         return receipt

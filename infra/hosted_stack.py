@@ -56,7 +56,7 @@ class HostedStack(Stack):
         table.grant_read_write_data(function)
         assets.grant_read_write(function)
         bus.grant_put_events_to(function)
-        function.add_to_role_policy(iam.PolicyStatement(actions=['ses:SendEmail'],
+        function.add_to_role_policy(iam.PolicyStatement(actions=['ses:SendEmail','ses:SendRawEmail'],
             resources=[Fn.condition_if(email_enabled.logical_id,
                 f'arn:aws:ses:{self.region}:{self.account}:identity/{demo_email.value_as_string}',
                 f'arn:aws:ses:{self.region}:{self.account}:identity/disabled.example').to_string()],

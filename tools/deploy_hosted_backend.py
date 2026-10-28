@@ -10,6 +10,8 @@ import zipfile
 from pathlib import Path
 
 import boto3
+from boto3.s3.transfer import TransferConfig
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,7 +42,10 @@ def main():
             raise RuntimeError('Lambda archive integrity check failed; rebuild before deployment')
     key = 'hosting/code/'+hashlib.sha256(payload).hexdigest()+'.zip'
     # Freeze the exact bytes before upload: a concurrent build cannot alter them.
-    session.client('s3').upload_fileobj(io.BytesIO(payload), bucket, key)
+    session.client('s3',endpoint_url='https://s3.us-east-1.amazonaws.com',
+        config=Config(connect_timeout=5,read_timeout=60,retries={'max_attempts':1},
+            s3={'addressing_style':'path'})).upload_fileobj(io.BytesIO(payload),bucket,key,
+                Config=TransferConfig(max_concurrency=1,multipart_chunksize=5*1024*1024,use_threads=False))
     env = {**os.environ, 'PULSE_CODE_BUCKET':bucket, 'PULSE_CODE_KEY':key, 'PULSE_ACCOUNT':account,
            'CDK_OUTDIR':str(ROOT / 'tmp/hosted-cdk'), 'NODE_OPTIONS':'--max-old-space-size=512'}
     try:
