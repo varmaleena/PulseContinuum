@@ -1,23 +1,57 @@
-# PulseContinuum AI
+## Inspiration
 
-## Problem
+A delivered message is not a completed handoff.
 
-After discharge, a patient's report, caregiver response and medication context can become disconnected as communication shifts between channels. A missing delivery receipt should not also mean losing the recovery story.
+After discharge, a patient may report a new symptom, share an unclear medication photo, or lose connectivity. A caregiver may respond through another channel. The next person reviewing the case needs the full context: what was prescribed, what the patient reported, what remains uncertain, and who is responsible for the next step.
 
-## Solution
+PulseContinuum AI explores how that recovery context can stay connected as evidence, people and communication paths change.
 
-PulseContinuum associates each interaction with a single recovery episode. It ingests an explicit discharge plan, evaluates submitted text and medication-label evidence with Amazon Bedrock, applies a deterministic formulary check, and demonstrates caregiver escalation and a signed clinician audit. Five pages expose cohort context, the workflow, orchestration, pending pharmacy requests and AWS telemetry.
+## What it does
 
-## AWS implementation
+PulseContinuum connects discharge instructions, patient evidence, caregiver responses and review tasks to one recovery episode.
 
-The connected prototype uses Amazon S3 for discharge assets, DynamoDB for episode persistence, Bedrock Nova Pro for multimodal inference, EventBridge with SNS/SQS/Lambda infrastructure for continuity events, and Amazon SES for an approved synthetic audit email. Runtime telemetry records actual request IDs and execution mode. SES API acceptance has been verified; inbox delivery has not been established.
+The workflow moves from **discharge plan → patient check-in → evidence review → clinician handoff → teach-back → follow-up**. Medication-label matching is kept separate from permission to change treatment. Unresolved evidence remains a review task.
 
-Phone-channel adapters for AWS End User Messaging are implemented, but live WhatsApp, RCS and SMS remain blocked by account subscription/onboarding. The application labels these attempts NOT_SENT. The current orchestrator runs in Python; managed AgentCore services are not deployed.
+Once a handoff opens, a bounded policy controller assigns owners and operational deadlines. An unconfirmed patient contact can create a caregiver contact intent. An unanswered review escalates to an on-call role. Repeated failures reach manual intervention instead of disappearing into a success state. Correlated replies stay attached to the existing case; duplicate events cannot create duplicate tasks.
 
-## Demonstration and validation
+Care teams see the patient workflow. A separate Admin & engineering view exposes the execution timeline and AWS evidence behind it.
 
-Six fictional recovery pathways contain distinct synthetic histories, discharge PDFs, medication plans, caregiver context and symptom reports. Offline safety cases exercise unreadable labels, mismatched strengths, unknown medications, mixed evidence and invalid model risk scores. Backend regression tests cover the clinical loop, authorization, invalid uploads, idempotency, stale receipts and native event handling. These are engineering checks, not evidence of clinical benefit.
+## How we built it
 
-## Value and next steps
+The frontend uses **Next.js, React and TypeScript**, hosted on Vercel. A server-side proxy connects it to a **FastAPI backend on AWS Lambda** without exposing backend credentials to the browser.
 
-The prototype demonstrates an inspectable handoff between patient evidence and clinician review. Its proposed value is reduced context loss across care channels; clinical outcomes and financial savings require prospective validation. Next steps are phone-channel onboarding, durable hosted audit/media storage, a real provider integration and supervised evaluation. Pharmacy prices and reservations remain fixtures, all requests await clinician approval, and the prototype must use synthetic data only.
+**Amazon Bedrock Nova Pro** interprets submitted text and medication-label images. Pydantic schemas validate model output, while deterministic checks compare medication evidence with the written discharge formulary.
+
+**DynamoDB** persists episode state, task ownership and event fingerprints. **Amazon S3** stores synthetic discharge files, media, recorded scenario evidence and versioned handoff PDFs. **EventBridge** invokes the deadline worker every five minutes, independently of an open browser. Bounded retries and an **SQS failure destination** preserve failed worker events for inspection.
+
+The **Amazon SES** integration uses Boto3 and includes a fixed verified demo inbox, a shared daily attempt limit and explicit acceptance or uncertain-outcome records. Generating a packet does not automatically email it. Infrastructure is defined with **AWS CDK**.
+
+## Challenges we ran into
+
+The hardest problems appeared after the first successful analysis: delayed receipts, repeated replies, failed contacts and unanswered review requests. We introduced run-specific correlation IDs, persisted event fingerprints and a DynamoDB workflow lease to keep these transitions consistent.
+
+Another failure case involved updating a PDF before the corresponding state save succeeded. Content-versioned artifacts now preserve the previously committed packet when a later save fails.
+
+Communication onboarding also shaped the prototype. Phone-channel delivery remains a preview. The email path distinguishes API acceptance, rejection and uncertainty rather than reporting every attempt as delivered.
+
+## Accomplishments that we're proud of
+
+- A deployed five-page application with distinct care and engineering views.
+- Three high-risk synthetic scenarios covering postoperative symptoms, wound deterioration with conflicting medication evidence, and heart-failure symptoms with caregiver fallback.
+- **46 passing backend tests** and **49 public coordination assertions** across the three scenarios.
+- Actual AWS scheduled-worker executions verified through CloudWatch evidence.
+- Persistent ownership, bounded escalation, duplicate suppression and an inspectable handoff packet.
+
+These are engineering results, not measurements of clinical accuracy, reduced readmissions or financial savings.
+
+## What we learned
+
+Reliable coordination requires more than a model response. The system must distinguish evidence from authorization, delivery from acknowledgment, and a recorded contact from a resolved concern.
+
+We also learned to make uncertainty visible. Recorded AWS inference is labeled as recorded, synthetic communication events remain synthetic, and a missing provider response does not become a successful send. The model assists evidence interpretation; explicit policies and human review determine what happens next.
+
+## What's next for PulseContinuum AI
+
+The next steps are verified two-way communication, supervised feedback from care coordinators, and evaluation against realistic operational workflows. Further work includes hospital identity and tenant isolation, consent management, EHR integration and a scalable due-task queue.
+
+The current application uses synthetic records only. Its owners are demonstration roles, its accelerated deadlines are operational examples, and it does not prescribe, dispense medicine or establish clinical recovery.

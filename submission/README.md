@@ -1,27 +1,17 @@
-# PulseContinuum AI submission
+# PulseContinuum AI submission assets
 
-PulseContinuum preserves a single synthetic recovery episode across discharge intake, patient evidence, caregiver fallback, and a clinician audit. The differentiator is continuity with inspectable execution evidence and explicit safety gates.
+- Public application: https://pulsecontinuum.vercel.app
+- Source: https://github.com/varmaleena/PulseContinuum
+- Project story: DEVPOST_STORY.md
+- Suggested form fields and gallery captions: DEVPOST_FIELDS.md
+- Deployed architecture: architecture-current.png / architecture-current.svg
+- Proposed enterprise SaaS architecture: architecture-enterprise-saas.png / architecture-enterprise-saas.svg
+- Enterprise design decisions: ENTERPRISE_ARCHITECTURE.md
+- Recording walkthrough: DEMO_SCRIPT.md
+- Actual UI captures: gallery/
 
-## What works
+The repository contains synthetic fixtures, source, CDK and local run instructions. The backend suite passes 46 tests. Three public coordination scenarios passed 49 assertions. These engineering results do not establish clinical efficacy or business savings.
 
-- Five-page frontend with separate Care team and Admin & engineering profiles, authenticated FastAPI backend, six distinct fictional recovery cases, and downloadable discharge PDFs.
-- Real S3 storage, DynamoDB persistence, Nova Pro multimodal analysis, EventBridge events, and one approved SES audit submission verified in the connected account.
-- Deterministic readable-label/name/strength gate, structured model-output validation, stale receipt protection, idempotent request fulfillment, and signed audit payloads.
-- Offline regression results: `evaluation-results.json`. These measure code behavior, not clinical outcomes or model accuracy.
+The public demo has no login requirement and exposes both view profiles. Recorded scenarios are labeled as recorded inference. Phone channels are previews. SES has a fixed-recipient explicit demo path; a recent uncertain send is not represented as confirmed acceptance or inbox delivery.
 
-## Honest boundaries
-
-WhatsApp/SMS/RCS delivery remains unavailable because account service subscription is blocked. Their local adapters demonstrate the intended flow and explicitly show NOT_SENT in live mode. Pharmacy inventory, prices, appointments and order reservations are synthetic. No medication is prescribed or purchased. Risk scores are unvalidated review signals. The orchestrator is local Python with MCP tool definitions; managed AgentCore Runtime/Memory/Gateway are not deployed. Managed Bedrock Guardrails are optional and currently unconfigured. Audio uses the entered transcript, without automatic speech recognition. Inbound SES domain routing is not activated.
-
-## Judge walkthrough
-
-Start with `DEMO_SCRIPT.md`; use `ARCHITECTURE.md` for the system boundary. Local launch instructions are in the root README. All records and files provided in the repository are synthetic. Use demo mode for a repeatable complete simulated workflow without cloud costs. Live mode must not silently fall back to demo responses.
-
-## Remaining submission actions
-
-- Published source: https://github.com/varmaleena/PulseContinuum.
-- Hosted application: https://pulsecontinuum.vercel.app. Private judge access is supplied separately; keep it available throughout judging.
-- Record and upload a public approximately three-minute video using the script. Supply its URL.
-- Complete the event submission form with repository, application, video and architecture links.
-
-These actions are intentionally listed as pending until their URLs and actual verification exist. A source archive alone is not a submitted entry.
+Submission still requires the actual tagged ACE opportunity ID, public video URL, entrant eligibility confirmation and a completed Devpost submission. Source publication or an upload archive is not a submitted entry. Keep advertised functionality available throughout judging.

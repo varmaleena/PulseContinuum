@@ -1,1 +1,81 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="950" height="690" viewBox="0 0 950 690"><rect width="950" height="690" fill="#f5faf8"/><style>text{font-family:Arial,sans-serif;fill:#16372e}.title{font-size:23px;font-weight:bold}.label{font-size:17px;font-weight:bold}.sub{font-size:12px;fill:#526d64}</style><text x="35" y="42" class="title">PulseContinuum AI · synthetic demonstration</text><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#168363"/></marker></defs><path d="M305 140H330" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M600 140H625" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M760 190V245H170V295" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M760 245H465V295" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M760 245V295" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M170 395V500" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M465 395V500" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><path d="M760 395V500" fill="none" stroke="#168363" stroke-width="2" marker-end="url(#arrow)"/><rect x="35" y="90" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="49" y="128" class="label">Judge / synthetic operator</text><text x="49" y="155" class="sub">HTTPS + private access</text><rect x="330" y="90" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="344" y="128" class="label">Next.js · five pages</text><text x="344" y="155" class="sub">Server-side API proxy</text><rect x="625" y="90" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="639" y="128" class="label">FastAPI orchestrator</text><text x="639" y="155" class="sub">Python in Lambda + safety gate</text><rect x="35" y="295" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="49" y="333" class="label">Bedrock Nova Pro</text><text x="49" y="360" class="sub">Structured multimodal evidence</text><rect x="330" y="295" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="344" y="333" class="label">DynamoDB + S3</text><text x="344" y="360" class="sub">Episode state / discharge assets</text><rect x="625" y="295" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="639" y="333" class="label">EventBridge / SNS / SQS</text><text x="639" y="360" class="sub">Continuity event infrastructure</text><rect x="35" y="500" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="49" y="538" class="label">Amazon SES</text><text x="49" y="565" class="sub">One approved synthetic audit</text><rect x="330" y="500" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="344" y="538" class="label">Pharmacy + phone adapters</text><text x="344" y="565" class="sub">Fixtures / phone onboarding blocked</text><rect x="625" y="500" width="270" height="100" rx="12" fill="white" stroke="#c4ddd3"/><text x="639" y="538" class="label">Signed audit trail</text><text x="639" y="565" class="sub">Private S3 / clinician review</text><text x="35" y="645" class="sub">Hosted frontend: Vercel. Backend: AWS Lambda. Local development remains available. Managed AgentCore is not deployed.</text><text x="35" y="667" class="sub">All patient records are fictional. No validated clinical or financial outcome is claimed.</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000" viewBox="0 0 1400 1000">
+<rect width="1400" height="1000" fill="#f5f9f7"/>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#397b68"/></marker></defs>
+<style>text{font-family:Arial,sans-serif;fill:#183e33}.title{font-size:30px;font-weight:700}.label{font-size:19px;font-weight:700}.small{font-size:14px;fill:#557468}.kicker{font-size:13px;letter-spacing:2px;fill:#5a746a}</style>
+<text x="40" y="46" class="title">PulseContinuum AI | Deployed prototype architecture</text>
+<text x="40" y="77" class="small">Synthetic records only. Solid: deployed integration. Dashed: schedule / failure path or preview. No clinical outcome claim.</text>
+<rect x="690" y="105" width="680" height="825" rx="18" fill="#eff5f1" stroke="#9bbfaa"/>
+<text x="715" y="132" class="kicker">AWS | US-EAST-1</text>
+<rect x="40" y="165" width="250" height="135" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="58" y="197" class="label">Judge / demo operator</text>
+<text x="58" y="225" class="small">Care team view</text>
+<text x="58" y="248" class="small">Admin &amp; engineering view</text>
+<text x="58" y="271" class="small">Public synthetic demo</text>
+<rect x="340" y="165" width="300" height="135" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="358" y="197" class="label">Vercel | Next.js</text>
+<text x="358" y="225" class="small">React + TypeScript</text>
+<text x="358" y="248" class="small">Server-side API proxy</text>
+<text x="358" y="271" class="small">Backend token stays server-side</text>
+<rect x="720" y="165" width="620" height="145" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="738" y="197" class="label">AWS Lambda | FastAPI</text>
+<text x="738" y="225" class="small">Nova evidence interpretation + deterministic evidence gates</text>
+<text x="738" y="248" class="small">Owned tasks, correlation IDs, duplicate suppression, bounded retries</text>
+<text x="738" y="271" class="small">Explicit synthetic human review; no autonomous prescribing</text>
+<path d="M290 230H340" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<path d="M640 230H720" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<text x="647" y="210" class="small">HTTPS</text>
+<path d="M1030 310V345H815V380" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1030 345V380" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1030 345H1255V380" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<rect x="720" y="380" width="190" height="145" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="738" y="412" class="label">Bedrock Nova Pro</text>
+<text x="738" y="440" class="small">Text + image evidence</text>
+<text x="738" y="463" class="small">Validated model output</text>
+<text x="738" y="486" class="small">Recorded-case option</text>
+<rect x="940" y="380" width="190" height="145" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="958" y="412" class="label">DynamoDB</text>
+<text x="958" y="440" class="small">Episode + task state</text>
+<text x="958" y="463" class="small">Workflow lease</text>
+<text x="958" y="486" class="small">Event / email budgets</text>
+<rect x="1160" y="380" width="190" height="145" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="1178" y="412" class="label">Private S3</text>
+<text x="1178" y="440" class="small">Discharge assets</text>
+<text x="1178" y="463" class="small">Recorded evidence</text>
+<text x="1178" y="486" class="small">Versioned PDF / media</text>
+<rect x="720" y="600" width="190" height="130" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="738" y="632" class="label">EventBridge</text>
+<text x="738" y="660" class="small">Five-minute schedule</text>
+<text x="738" y="683" class="small">Same deadline reducer</text>
+<text x="738" y="706" class="small">No model / email sends</text>
+<rect x="940" y="600" width="190" height="130" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="958" y="632" class="label">Amazon SES</text>
+<text x="958" y="660" class="small">Explicit synthetic email</text>
+<text x="958" y="683" class="small">Fixed verified inbox</text>
+<text x="958" y="706" class="small">Three attempts/day cap</text>
+<rect x="1160" y="600" width="190" height="130" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="1178" y="632" class="label">Amazon SQS</text>
+<text x="1178" y="660" class="small">Worker failure queue</text>
+<text x="1178" y="683" class="small">Bounded invoke retries</text>
+<text x="1178" y="706" class="small">Operator inspection</text>
+<path d="M720 660H704V276H720" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)" stroke-dasharray="6 5"/>
+<path d="M925 310V660H940" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1340 276H1357V575H1255V600" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)" stroke-dasharray="6 5"/>
+<rect x="340" y="600" width="300" height="130" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="358" y="632" class="label">Owner demo inbox</text>
+<text x="358" y="660" class="small">SES sandbox: verified recipient</text>
+<text x="358" y="683" class="small">Acceptance is recorded separately</text>
+<text x="358" y="706" class="small">Inbox delivery is not established</text>
+<path d="M1035 730V784H655V665H640" fill="none" stroke="#397b68" stroke-width="2" marker-end="url(#a)"/>
+<rect x="40" y="600" width="250" height="130" rx="13" fill="#fff" stroke="#bfd4c9" stroke-dasharray="6 5"/>
+<text x="58" y="632" class="label">Phone channels</text>
+<text x="58" y="660" class="small">WhatsApp / SMS / RCS</text>
+<text x="58" y="683" class="small">Adapters and UI previews</text>
+<text x="58" y="706" class="small">Live delivery not enabled</text>
+<rect x="720" y="825" width="620" height="80" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="738" y="857" class="label">CloudWatch + durable telemetry</text>
+<text x="738" y="885" class="small">Execution modes and AWS response metadata; no browser AWS keys</text>
+<rect x="40" y="825" width="600" height="80" rx="13" fill="#fff" stroke="#bfd4c9"/>
+<text x="58" y="857" class="label">Reproducible prototype</text>
+<text x="58" y="885" class="small">AWS CDK infrastructure | source + fixtures | tests | public demo</text>
+<text x="40" y="963" class="small">Managed AgentCore is not deployed. Contact intents and injected caregiver events are synthetic.</text>
+</svg>

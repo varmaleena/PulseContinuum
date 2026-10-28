@@ -1,38 +1,19 @@
-# Architecture and deployed boundaries
+# Deployed architecture and enterprise roadmap
 
-![Architecture](architecture.svg)
+![Deployed prototype](architecture-current.png)
 
-```mermaid
-flowchart LR
-  J[Judge / synthetic operator] -->|HTTPS + judge access on public host| N[Next.js: five pages]
-  N -->|Private bearer token; SSE proxy| F[FastAPI + local Python orchestrator]
-  F --> G[Deterministic label/formulary gate]
-  F --> B[Bedrock Nova Pro: real inference]
-  F --> D[DynamoDB: episode memory]
-  F --> S[S3: synthetic discharge assets]
-  F --> E[EventBridge: continuity events]
-  F --> M[SES: approved audit email]
-  E --> Q[SNS / SQS / timeout Lambda]
-  Q --> F
-  F -. onboarding blocked .-> P[WhatsApp / RCS / SMS adapters]
-  F --> X[Fixture pharmacy + pending clinician request]
-  F --> A[Signed audit + local PDF/media]
-```
+## Deployed prototype
 
-Solid service edges represent implemented adapters; verification evidence is described in the root VERIFICATION.md. The public Next.js frontend runs on Vercel; the hosted FastAPI orchestrator runs on AWS Lambda. The separate local workspace remains available. The frontend never receives the backend token or AWS credentials. SSE uses the server proxy. The optional judge middleware fails closed when `REQUIRE_JUDGE_AUTH=true` but credentials are absent.
+The Next.js frontend runs on Vercel. Its server-side proxy uses a private service token to call FastAPI on AWS Lambda. Judges can switch between public synthetic care and engineering views; this is not hospital SSO or tenant isolation. Hosted event updates use polling.
 
-The CDK stack provisions shared data/messaging infrastructure. The application orchestrator is not managed AgentCore. MCP servers expose tool definitions, while the current app calls their Python implementations directly. No managed safety policy or validated clinical risk model is claimed.
+Bedrock Nova Pro interprets text and medication-label images. Deterministic schema/formulary checks constrain permitted actions. DynamoDB persists episode state, coordination tasks, event fingerprints and shared attempt budgets. Private S3 stores discharge files, recorded evidence and content-versioned PDF/media artifacts.
 
-## Data lifecycle and trust
+EventBridge runs the deadline policy every five minutes. Lambda invocation retries and an SQS failure destination retain failed work for operator inspection. The explicit SES path is limited to a fixed verified demo inbox and a small daily attempt budget. Provider acceptance and inbox delivery are separate; current test acceptance is not claimed. Phone sends are not enabled.
 
-Only the six labeled synthetic cases are allowed in the hackathon demo. Uploaded PDF text and model output are untrusted. Explicit medication rows are required; invalid evidence fails to clinical review. A label match verifies only name and strength against the written formulary, not dose timing or clinical suitability. Model risk scores are unvalidated.
+Only synthetic cases are used. Managed AgentCore, hospital identity, EHR integration and validated clinical outcomes are not deployed capabilities. HMAC values demonstrate application payload integrity, not clinician signatures.
 
-DynamoDB holds episode state; S3 holds uploaded discharge assets. Hosted audit PDFs and media persist in private S3; Lambda disk is a cache. Local mode retains its local-file behavior. HMAC checks protect audit payload integrity but are not clinician signatures. No EHR, real pharmacy, emergency response or production clinical integration exists.
+## Proposed enterprise SaaS design
 
-## Deployment cost boundary
+[Enterprise reference architecture and design notes](ENTERPRISE_ARCHITECTURE.md)
 
-Do not assume App Runner is available: AWS closed it to new customers on April 30, 2026. Candidate hosting must support an IAM execution role, HTTPS, private backend networking, durable artifacts and a cost bounded demo. Static AWS access keys must never be baked into containers. The hosted deployment uses request-based Lambda and DynamoDB billing, with ten model attempts per UTC day and outbound messaging disabled. The $10 authorization is the integration/verification budget, not a guaranteed provider spending cap.
-
-## Profile boundary
-
-Care team is the default experience and receives only allowlisted clinical API responses with raw traces and AWS identifiers removed. Admin & engineering receives the raw event stream and technical pages. A local Demo profiles selector enables presentation; on a secured host, care credentials cannot elevate to admin. See [access design](../docs/ACCESS_PROFILES.md).
+The enterprise diagram adds verified tenant identity, tenant-aware authorization and storage, a SaaS control plane, durable Step Functions orchestration, production communication adapters, governance and operational resilience. Its BUILT / EXTEND / PROPOSED labels distinguish existing foundations from future work.

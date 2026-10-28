@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1450" viewBox="0 0 1800 1450">
+<rect width="1800" height="1450" fill="#f4f7fb"/>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#647b93"/></marker></defs>
+<style>text{font-family:Arial,sans-serif;fill:#20364d}.title{font-size:34px;font-weight:700}.sub{font-size:17px;fill:#60758b}.label{font-size:20px;font-weight:700}.body{font-size:15px;fill:#536a7e}.lane{font-size:15px;font-weight:700;letter-spacing:1.5px}.badge{font-size:11px;font-weight:700}</style>
+<text x="35" y="49" class="title">PulseContinuum AI</text>
+<text x="35" y="80" class="sub">Enterprise SaaS reference architecture | Proposed target state</text>
+<text x="35" y="111" class="body">Not a deployment inventory. BUILT = prototype capability; EXTEND = existing service needs enterprise controls; PROPOSED = new component.</text>
+<rect x="35" y="140" width="1730" height="190" rx="18" fill="#eaf0f7" stroke="#d4dfe9"/>
+<text x="55" y="170" class="lane">EXPERIENCE &amp; TRUSTED ENTRY</text>
+<rect x="55" y="185" width="285" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="73" y="216" class="label">Hospital tenants</text>
+<rect x="73" y="229" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="81" y="244" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="73" y="276" class="body">Clinicians · coordinators</text>
+<text x="73" y="299" class="body">Caregivers · platform operators</text>
+<rect x="365" y="185" width="340" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="383" y="216" class="label">Next.js care + admin apps</text>
+<rect x="383" y="229" width="83" height="21" rx="5" fill="#e4f5ed"/>
+<text x="391" y="244" class="badge" style="fill:#1c7254">BUILT</text>
+<text x="383" y="276" class="body">Existing Vercel-hosted prototype</text>
+<text x="383" y="299" class="body">Separate clinical / engineering views</text>
+<rect x="730" y="185" width="390" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="748" y="216" class="label">CloudFront + AWS WAF</text>
+<rect x="748" y="229" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="756" y="244" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="748" y="276" class="body">TLS · rate rules · protected origins</text>
+<text x="748" y="299" class="body">No clinical API / identity response caching</text>
+<rect x="1145" y="185" width="595" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1163" y="216" class="label">Cognito + hospital identity federation</text>
+<rect x="1163" y="229" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="1171" y="244" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="1163" y="276" class="body">OIDC / SAML through approved enterprise identity provider</text>
+<text x="1163" y="299" class="body">Verified user + tenant identity; MFA and role / attribute policy</text>
+<rect x="35" y="350" width="320" height="780" rx="18" fill="#edf0fa" stroke="#d4dfe9"/>
+<text x="55" y="380" class="lane">SAAS CONTROL PLANE</text>
+<rect x="55" y="405" width="280" height="155" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="73" y="436" class="label">Tenant lifecycle</text>
+<rect x="73" y="449" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="81" y="464" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="73" y="496" class="body">Onboarding / offboarding</text>
+<text x="73" y="519" class="body">Tenant registry + isolation tier</text>
+<text x="73" y="542" class="body">Approval / consent configuration</text>
+<rect x="55" y="585" width="280" height="155" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="73" y="616" class="label">Entitlements &amp; usage</text>
+<rect x="73" y="629" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="81" y="644" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="73" y="676" class="body">Per-tenant quotas and budgets</text>
+<text x="73" y="699" class="body">Usage metering / billing hooks</text>
+<text x="73" y="722" class="body">Controlled model / channel access</text>
+<rect x="55" y="765" width="280" height="155" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="73" y="796" class="label">Platform administration</text>
+<rect x="73" y="809" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="81" y="824" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="73" y="856" class="body">Support roles with scoped access</text>
+<text x="73" y="879" class="body">Versioned operational policies</text>
+<text x="73" y="902" class="body">Tenant-aware audit and reporting</text>
+<rect x="55" y="945" width="280" height="155" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="73" y="976" class="label">Infrastructure delivery</text>
+<rect x="73" y="989" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="81" y="1004" class="badge" style="fill:#956622">EXTEND</text>
+<text x="73" y="1036" class="body">CDK + CI/CD foundations</text>
+<text x="73" y="1059" class="body">Environment separation / rollback</text>
+<text x="73" y="1082" class="body">Change and approval controls</text>
+<rect x="385" y="350" width="1380" height="215" rx="18" fill="#edf6f3" stroke="#d4dfe9"/>
+<text x="405" y="380" class="lane">AUTHORIZATION &amp; TENANT BOUNDARY</text>
+<rect x="410" y="405" width="420" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="428" y="436" class="label">API Gateway + JWT authorization</text>
+<rect x="428" y="449" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="436" y="464" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="428" y="496" class="body">Validate issuer, audience, expiry and tenant claim</text>
+<text x="428" y="519" class="body">Never trust a caller-supplied tenant identifier</text>
+<rect x="855" y="405" width="420" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="873" y="436" class="label">Tenant-scoped application API</text>
+<rect x="873" y="449" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="881" y="464" class="badge" style="fill:#956622">EXTEND</text>
+<text x="873" y="496" class="body">FastAPI / Lambda application foundation</text>
+<text x="873" y="519" class="body">Enforce resource ownership and allowed actions</text>
+<rect x="1300" y="405" width="440" height="135" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1318" y="436" class="label">Integration / receipt ingress</text>
+<rect x="1318" y="449" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="1326" y="464" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="1318" y="496" class="body">Authenticated hospital / provider adapters</text>
+<text x="1318" y="519" class="body">Verify provider signatures; deduplicate events</text>
+<path d="M925 320V338H620V405" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1435 320V338H620" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M830 472H855" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1300 472H1275" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<rect x="385" y="590" width="1380" height="255" rx="18" fill="#eef3f9" stroke="#d4dfe9"/>
+<text x="405" y="620" class="lane">DURABLE COORDINATION &amp; AI EXECUTION</text>
+<rect x="410" y="645" width="310" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="428" y="676" class="label">Step Functions Standard</text>
+<rect x="428" y="689" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="436" y="704" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="428" y="736" class="body">Persisted workflow / task state</text>
+<text x="428" y="759" class="body">Human-review callback boundaries</text>
+<text x="428" y="782" class="body">Timeout, retry and compensation</text>
+<text x="428" y="805" class="body">Authorised API mediates task tokens</text>
+<rect x="745" y="645" width="310" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="763" y="676" class="label">Lambda policy + tools</text>
+<rect x="763" y="689" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="771" y="704" class="badge" style="fill:#956622">EXTEND</text>
+<text x="763" y="736" class="body">Existing bounded policy controller</text>
+<text x="763" y="759" class="body">Schema / evidence validation</text>
+<text x="763" y="782" class="body">No autonomous prescribing</text>
+<text x="763" y="805" class="body">Tenant quotas and idempotent actions</text>
+<rect x="1080" y="645" width="310" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1098" y="676" class="label">Bedrock Nova Pro</text>
+<rect x="1098" y="689" width="83" height="21" rx="5" fill="#e4f5ed"/>
+<text x="1106" y="704" class="badge" style="fill:#1c7254">BUILT</text>
+<text x="1098" y="736" class="body">Text + medication-label analysis</text>
+<text x="1098" y="759" class="body">Structured model output</text>
+<text x="1098" y="782" class="body">Evidence is not clinical approval</text>
+<text x="1098" y="805" class="body">Schema validation + policy gates</text>
+<rect x="1415" y="645" width="325" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1433" y="676" class="label">EventBridge + SQS</text>
+<rect x="1433" y="689" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="1441" y="704" class="badge" style="fill:#956622">EXTEND</text>
+<text x="1433" y="736" class="body">Existing scheduled deadline checks</text>
+<text x="1433" y="759" class="body">Tenant-aware due-work dispatch</text>
+<text x="1433" y="782" class="body">Buffered work and bounded retries</text>
+<text x="1433" y="805" class="body">DLQ inspection / redrive controls</text>
+<path d="M1065 540V570H565V645" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M720 730H745" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1055 730H1080" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1577 645V575H1065V540" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)" stroke-dasharray="7 5"/>
+<rect x="385" y="870" width="1380" height="260" rx="18" fill="#edf6f3" stroke="#d4dfe9"/>
+<text x="405" y="900" class="lane">TENANT DATA, CLINICAL HANDOFFS &amp; COMMUNICATION</text>
+<rect x="410" y="925" width="310" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="428" y="956" class="label">DynamoDB episode store</text>
+<rect x="428" y="969" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="436" y="984" class="badge" style="fill:#956622">EXTEND</text>
+<text x="428" y="1016" class="body">Existing durable episode state</text>
+<text x="428" y="1039" class="body">Target: tenant-prefixed access keys</text>
+<text x="428" y="1062" class="body">Repository + IAM isolation checks</text>
+<text x="428" y="1085" class="body">Conditional writes / PITR policy</text>
+<rect x="745" y="925" width="310" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="763" y="956" class="label">S3 evidence + packets</text>
+<rect x="763" y="969" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="771" y="984" class="badge" style="fill:#956622">EXTEND</text>
+<text x="763" y="1016" class="body">Existing private, versioned artifacts</text>
+<text x="763" y="1039" class="body">Target: tenant-scoped object access</text>
+<text x="763" y="1062" class="body">KMS keys / lifecycle / retention</text>
+<text x="763" y="1085" class="body">Short-lived authorised downloads</text>
+<rect x="1080" y="925" width="310" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1098" y="956" class="label">SES handoff delivery</text>
+<rect x="1098" y="969" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="1106" y="984" class="badge" style="fill:#956622">EXTEND</text>
+<text x="1098" y="1016" class="body">Explicit fixed-inbox prototype</text>
+<text x="1098" y="1039" class="body">Target: consent + approved identities</text>
+<text x="1098" y="1062" class="body">Acceptance / bounce reconciliation</text>
+<text x="1098" y="1085" class="body">Durable outbox; uncertain-send policy</text>
+<rect x="1415" y="925" width="325" height="175" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1433" y="956" class="label">EUM + hospital systems</text>
+<rect x="1433" y="969" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="1441" y="984" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="1433" y="1016" class="body">WhatsApp / SMS / RCS onboarding</text>
+<text x="1433" y="1039" class="body">Approved senders + correlated replies</text>
+<text x="1433" y="1062" class="body">FHIR / HL7 integration boundary</text>
+<text x="1433" y="1085" class="body">Phone / EHR integration proposed</text>
+<path d="M900 820V856H565V925" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M900 856V925" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M900 856H1235V925" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1577 820V925" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/>
+<path d="M1740 1015H1752V472H1740" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)" stroke-dasharray="7 5"/>
+<rect x="35" y="1160" width="1730" height="210" rx="18" fill="#eaf0f7" stroke="#d4dfe9"/>
+<text x="55" y="1190" class="lane">CROSS-CUTTING SECURITY, OPERATIONS &amp; RESILIENCE</text>
+<rect x="55" y="1215" width="535" height="130" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="73" y="1246" class="label">Security &amp; data governance</text>
+<rect x="73" y="1259" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="81" y="1274" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="73" y="1306" class="body">Least-privilege IAM · KMS · Secrets Manager · private endpoints</text>
+<text x="73" y="1329" class="body">Tenant isolation tests · consent / retention · security review</text>
+<rect x="615" y="1215" width="535" height="130" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="633" y="1246" class="label">Observability &amp; AI operations</text>
+<rect x="633" y="1259" width="83" height="21" rx="5" fill="#fff0d9"/>
+<text x="641" y="1274" class="badge" style="fill:#956622">EXTEND</text>
+<text x="633" y="1306" class="body">CloudWatch foundation → tenant-aware metrics and alarms</text>
+<text x="633" y="1329" class="body">CloudTrail / tracing · model evaluations · cost attribution</text>
+<rect x="1175" y="1215" width="565" height="130" rx="12" fill="#fff" stroke="#cedbe5"/>
+<text x="1193" y="1246" class="label">Availability &amp; disaster recovery</text>
+<rect x="1193" y="1259" width="83" height="21" rx="5" fill="#eaf0fc"/>
+<text x="1201" y="1274" class="badge" style="fill:#446398">PROPOSED</text>
+<text x="1193" y="1306" class="body">Multi-AZ managed services · backups / restore exercises</text>
+<text x="1193" y="1329" class="body">Define and validate RTO / RPO; cross-region recovery if required</text>
+<text x="35" y="1410" class="body">Current demo: synthetic records; public view switching; phone previews; no production tenancy, hospital SSO or compliance certification.</text><path d="M340 252H365" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/><path d="M705 252H730" fill="none" stroke="#647b93" stroke-width="2" marker-end="url(#a)"/></svg>
