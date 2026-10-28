@@ -57,7 +57,8 @@ def main():
     template = (ROOT/'tmp/hosted-cdk/PulseContinuumWebBackend.template.json').read_text(encoding='utf-8')
     arguments = {'StackName':'PulseContinuumWebBackend', 'TemplateBody':template,
         'Parameters':[{'ParameterKey':'ApiToken','ParameterValue':config['api_token']},
-                      {'ParameterKey':'SigningKey','ParameterValue':config['signing_key']}],
+                      {'ParameterKey':'SigningKey','ParameterValue':config['signing_key']},
+                      {'ParameterKey':'DemoEmailAddress','ParameterValue':config.get('demo_email_recipient','')}],
         'Capabilities':['CAPABILITY_IAM']}
     try:
         cf.describe_stacks(StackName=arguments['StackName'])

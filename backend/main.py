@@ -32,6 +32,7 @@ from models.schemas import (
     ClinicalReviewRequest,
     CoordinationCommand,
     DeliveryEvent,
+    DemoEmailRequest,
     FollowUpRequest,
     WorkflowRequest,
 )
@@ -74,6 +75,11 @@ def authorize(authorization: str | None = Header(default=None)):
 api_auth = [Depends(authorize)]
 
 
+@app.post('/api/workflow/send-demo-email', dependencies=api_auth)
+async def send_demo_email(body: DemoEmailRequest):
+    return await supervisor.send_demo_email(body.episode_id)
+
+
 @app.post('/api/workflow/coordination-event', dependencies=api_auth)
 async def coordination_event(body: CoordinationCommand):
     return await supervisor.coordinate(body)
@@ -94,6 +100,7 @@ async def invalid(request: Request, exc: ValueError):
 @app.get('/api/health')
 def health():
     return {'status': 'ok', 'mode': settings().aws_mode, 'region': settings().aws_region,
+            'email_demo_enabled':settings().demo_email_enabled,
             'synthetic_reset': settings().allow_synthetic_reset,
             'account_id': settings().aws_account_id,
             'channels': {name: settings().channel_enabled(name) for name in ['WHATSAPP', 'RCS', 'SMS', 'SES']},

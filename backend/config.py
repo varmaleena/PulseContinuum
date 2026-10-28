@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     serverless: bool = False
     allow_synthetic_reset: bool = False
     max_model_calls_per_day: int = 0
+    demo_email_enabled: bool = False
+    demo_email_recipient: str = ''
+    explicit_email_only: bool = False
 
     def channel_enabled(self, channel: str) -> bool:
         return self.aws_mode == 'demo' or channel in self.outbound_channels.upper().split(',')

@@ -24,7 +24,8 @@ def main():
     retries = function.get_function_event_invoke_config(FunctionName=private['FunctionName'])
     assert rule['State']=='ENABLED' and rule['ScheduleExpression']=='rate(5 minutes)'
     assert retries['MaximumRetryAttempts']==1 and retries['DestinationConfig']['OnFailure']['Destination']
-    assert config['Environment']['Variables']['OUTBOUND_CHANNELS']==''
+    assert config['Environment']['Variables']['OUTBOUND_CHANNELS'] in ('','SES')
+    assert config['Environment']['Variables'].get('EXPLICIT_EMAIL_ONLY')=='true'
     assert config['Environment']['Variables']['MAX_MODEL_CALLS_PER_DAY']=='10'
     spoofed = httpx.post(private['BackendUrl'],json={'source':'pulsecontinuum.coordination',
         'detail-type':'CoordinationTick'},timeout=15)
@@ -44,7 +45,7 @@ def main():
             ticks.append({'timestamp':item['timestamp'], 'result':payload['coordination_tick']})
     proof = {'checked_at':end.isoformat(),'schedule':rule['ScheduleExpression'],'rule_enabled':True,
         'async_retries':retries['MaximumRetryAttempts'],'failure_destination_configured':True,
-        'outbound_channels_enabled':False,'daily_model_cap':10,'scheduled_invocations':ticks,
+        'phone_channels_enabled':False,'email_requires_explicit_action':True,'daily_model_cap':10,'scheduled_invocations':ticks,
         'deployed_package_matches_local':True,
         'spoofed_http_tick_status':spoofed.status_code,
         'note':'This verifier reads logs only; it does not invoke the worker or mutate an episode.'}

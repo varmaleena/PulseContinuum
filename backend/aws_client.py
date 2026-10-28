@@ -25,7 +25,8 @@ def serial(value: Any) -> Any:
 def client(service: str):
     session = boto3.Session(profile_name=settings().aws_profile or None)
     return session.client(service, region_name=settings().aws_region,
-                        config=Config(connect_timeout=4, read_timeout=30, retries={'max_attempts': 1}))
+                        config=Config(connect_timeout=4, read_timeout=30,
+                            retries={'max_attempts': 0 if service == 'sesv2' else 1}))
 
 
 def call(service: str, operation: str, payload: dict, category: str,

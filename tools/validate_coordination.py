@@ -15,7 +15,8 @@ def main():
         'new_model_requests':0, 'outbound_sent':False, 'cases':[]}
     with httpx.Client(base_url=BASE, headers={'Origin':BASE}, timeout=60) as api:
         health = api.get('/api/health').raise_for_status().json()
-        assert not any(health['channels'].values()), 'Do not run this check with outbound channels enabled'
+        assert not any(health['channels'][name] for name in ('SMS','RCS','WHATSAPP')), 'Phone channels must remain disabled'
+        # This script never calls the explicit SES action; review creation must remain NOT_SENT.
         for episode in ['EP-2026-409', 'EP-2026-425', 'EP-2026-429']:
             state = api.post('/api/workflow/replay-scenario',json={'episode_id':episode}).raise_for_status().json()
             original_meds = state['medications']

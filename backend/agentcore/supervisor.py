@@ -11,7 +11,7 @@ from agentcore.coordination import apply_event, open_coordination, tick
 from agentcore.memory_graph import MemoryGraph
 from agentcore.vision_forensics import analyze_patient_submission
 from artifact_store import save_artifact
-from aws_client import call, client
+from aws_client import call, client, not_sent
 from botocore.exceptions import ClientError
 from config import settings
 from mcp_gateway.cds_dispatcher_mcp import AWSCDSEngine
@@ -222,7 +222,9 @@ class Supervisor:
             mime.set_content('Clinical review required. See attached signed-payload audit.')
             mime.add_alternative(report, subtype='html')
             mime.add_attachment(pdf, maintype='application', subtype='pdf', filename='clinical-audit.pdf')
-            result = self.cds.send_ses_clinical_escalation_email(state.physician_email, subject, report, mime.as_bytes())
+            result = (not_sent('sesv2','send_email',{},'SES_V2','Use the explicit bounded demo-email action; no automatic email.')
+                if settings().explicit_email_only else
+                self.cds.send_ses_clinical_escalation_email(state.physician_email, subject, report, mime.as_bytes()))
             state.audit.update({'message_id': result['message_id'], 'mode': result['execution_mode']})
             self.message(state, 'SES', subject, result, destination=state.physician_email)
             return self.commit(state)
@@ -371,6 +373,18 @@ class Supervisor:
             self.trace(state, 'Handoff Policy Controller', 'Processed correlated synthetic coordination event',
                 state.coordination['last_event_result'])
             self.refresh_handoff(state)
+            return self.commit(state)
+
+    async def send_demo_email(self, episode_id: str) -> PatientState:
+        from agentcore.demo_email import send_packet
+        async with self.lock(episode_id):
+            state = self.memory.get(episode_id)
+            self.require_demo_handoff(state)
+            if episode_id not in self.memory.templates:
+                raise ValueError('Only the published synthetic fixture episodes may be emailed.')
+            state.email_receipt = send_packet(state)
+            self.trace(state,'SES Handoff','Explicit synthetic email attempt; no clinical treatment or inbox delivery inferred',
+                {'status':state.email_receipt['status']})
             return self.commit(state)
 
     async def coordination_tick(self):

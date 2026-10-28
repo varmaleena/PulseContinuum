@@ -1,5 +1,5 @@
-"""Low-idle-cost backend for the Vercel frontend; no outbound messaging permissions."""
-from aws_cdk import CfnOutput, CfnParameter, Duration, RemovalPolicy, Stack
+"""Low-idle-cost backend; explicit bounded SES demo, no phone-send permissions."""
+from aws_cdk import CfnCondition, CfnOutput, CfnParameter, Duration, Fn, RemovalPolicy, Stack
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_events as events
 from aws_cdk import aws_events_targets as targets
@@ -19,6 +19,8 @@ class HostedStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
         api_token = CfnParameter(self, 'ApiToken', no_echo=True, min_length=32)
         signing_key = CfnParameter(self, 'SigningKey', no_echo=True, min_length=32)
+        demo_email = CfnParameter(self, 'DemoEmailAddress', no_echo=True, default='')
+        email_enabled = CfnCondition(self,'DemoEmailEnabled',expression=Fn.condition_not(Fn.condition_equals(demo_email.value_as_string,'')))
         table = (dynamodb.Table.from_table_name(self, 'ExistingHostedMemory', existing_table) if existing_table else dynamodb.Table(self, 'HostedMemory',
             partition_key=dynamodb.Attribute(name='EpisodeID', type=dynamodb.AttributeType.STRING),
             sort_key=dynamodb.Attribute(name='EntityKey', type=dynamodb.AttributeType.STRING),
@@ -44,12 +46,22 @@ class HostedStack(Stack):
                 'DATA_DIR':'/tmp/pulsecontinuum', 'MEMORY_TABLE':table.table_name,
                 'ASSETS_BUCKET':assets.bucket_name, 'EVENT_BUS_NAME':bus.event_bus_name,
                 'API_TOKEN':api_token.value_as_string, 'AUDIT_SIGNING_KEY':signing_key.value_as_string,
-                'OUTBOUND_CHANNELS':'', 'TEST_PHYSICIAN_EMAIL':'clinician@synthetic.example',
+                'OUTBOUND_CHANNELS':Fn.condition_if(email_enabled.logical_id,'SES','').to_string(),
+                'TEST_PHYSICIAN_EMAIL':'clinician@synthetic.example',
+                'DEMO_EMAIL_ENABLED':Fn.condition_if(email_enabled.logical_id,'true','false').to_string(),
+                'DEMO_EMAIL_RECIPIENT':demo_email.value_as_string,'SES_VERIFIED_SENDER':demo_email.value_as_string,
+                'EXPLICIT_EMAIL_ONLY':'true',
                 'ALLOW_SYNTHETIC_RESET':'true', 'MAX_MODEL_CALLS_PER_DAY':'10',
                 'BEDROCK_MODEL_ID':'us.amazon.nova-pro-v1:0'})
         table.grant_read_write_data(function)
         assets.grant_read_write(function)
         bus.grant_put_events_to(function)
+        function.add_to_role_policy(iam.PolicyStatement(actions=['ses:SendEmail'],
+            resources=[Fn.condition_if(email_enabled.logical_id,
+                f'arn:aws:ses:{self.region}:{self.account}:identity/{demo_email.value_as_string}',
+                f'arn:aws:ses:{self.region}:{self.account}:identity/disabled.example').to_string()],
+            conditions={'StringEquals':{'ses:FromAddress':demo_email.value_as_string},
+                'ForAllValues:StringEquals':{'ses:Recipients':[demo_email.value_as_string]}}))
         failed_ticks = sqs.Queue(self, 'CoordinationTickFailures',
             encryption=sqs.QueueEncryption.SQS_MANAGED, retention_period=Duration.days(1))
         function.configure_async_invoke(retry_attempts=1, max_event_age=Duration.minutes(5),

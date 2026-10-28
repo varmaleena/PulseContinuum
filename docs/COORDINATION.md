@@ -54,7 +54,7 @@ These short deadlines exist only to demonstrate operational behavior. Real urgen
 6. Advance six demo minutes: unanswered review moves to the on-call clinician. Expand **Why the controller acted**.
 7. Record an explicit synthetic human review. Show teach-back and follow-up remaining separate requirements. A persistent concern remains unresolved.
 
-All contact intents are `PREVIEW_ONLY`; receipts and caregiver responses injected by judges are synthetic. Hosted SES and phone sends remain disabled. The existing provider adapters are not wired into this new contact-intent outbox, so it does not claim a live two-way communications loop. Adding real dispatch needs consent, identity checks, provider correlation and delivery reconciliation.
+All contact intents are `PREVIEW_ONLY`; receipts and caregiver responses injected by judges are synthetic. Phone sends remain disabled. A separate, explicitly invoked SES demo-email action can send the committed synthetic PDF to one fixed verified inbox; the coordination worker does not send it. The existing provider adapters are not wired into this new contact-intent outbox, so it does not claim a live two-way communications loop. Adding real dispatch needs consent, identity checks, provider correlation and delivery reconciliation.
 
 ## Verification and limits
 

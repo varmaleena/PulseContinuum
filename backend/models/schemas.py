@@ -82,6 +82,12 @@ class PatientState(BaseModel):
     follow_up_record: dict[str, Any] | None = None
     demo_replay: dict[str, Any] | None = None
     coordination: dict[str, Any] | None = None
+    email_receipt: dict[str, Any] | None = None
+
+
+class DemoEmailRequest(BaseModel):
+    model_config = {'extra':'forbid'}
+    episode_id: str
 
 
 class ClinicalReviewRequest(BaseModel):

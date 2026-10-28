@@ -120,7 +120,7 @@ The hosted Python orchestrator runs in AWS Lambda; the local launcher remains av
 
 Open **https://pulsecontinuum.vercel.app** directly: **the public synthetic judge demo requires no login**. Use the Demo profiles selector to inspect both the clinical experience and technical evidence. This public view selector is not hospital authorization; backend service credentials stay private.
 
-The frontend is hosted on Vercel, with a bearer-protected AWS Lambda backend, DynamoDB episode state, private S3 artifacts and durable telemetry. The hosted demo allows ten fresh Bedrock inference attempts per UTC day and disables all outbound messaging. Recorded AWS-case exploration does not consume that allowance. Its clinical audit packet is generated and stored, but no additional email is sent. Synthetic episode reset is enabled for repeatable judging. See [hosting details](docs/HOSTED_DEPLOYMENT.md).
+The frontend is hosted on Vercel, with a bearer-protected AWS Lambda backend, DynamoDB episode state, private S3 artifacts and durable telemetry. The hosted demo allows ten fresh Bedrock inference attempts per UTC day and keeps phone sends disabled. A separate explicit SES action can send the synthetic handoff PDF only to the owner’s configured verified inbox, once per episode per UTC day and at most three attempts total per day. Recorded AWS-case exploration does not consume that allowance. Generating or updating the clinical packet never emails it automatically. SES acceptance is shown separately and does not establish inbox delivery. Synthetic episode reset is enabled for repeatable judging. See [hosting details](docs/HOSTED_DEPLOYMENT.md).
 
 ## Run the demo
 
